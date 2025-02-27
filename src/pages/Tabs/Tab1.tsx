@@ -5,10 +5,12 @@ import { useDrive } from '../../contexts/DriveContext';
 import { getUserDetails } from '../../cognitoConfig';
 import { endDrive, getCurrentDrive, MINIMUM_DRIVE_PAUSE_SPEED, syncDrivesToServer } from '../../driveHandler';
 
+import { Http } from '@capacitor-community/http';
+
 import { PluginListenerHandle } from '@capacitor/core';
 import { Motion } from '@capacitor/motion';
-import { formatCurrency, msToKmh, msToKmhLabel, msToM, msToMph, msToMphLabel, msToTimeLabel, mToKmLabel, mToMi, mToMiLabel } from '../../utils';
-import { apiAxiosClient } from '../../axios';
+import { formatCurrency, msToKmh, msToKmhLabel, msToM, msToMph, msToMphLabel, msToTimeLabel, mToKmLabel, mToMi, mToMiLabel, getDistance } from '../../utils';
+import { apiAxiosClient, genericAxiosClient } from '../../axios';
 import { Preferences } from '@capacitor/preferences';
 import currencies from '../../currencies';
 import { Link } from 'react-router-dom';
@@ -36,6 +38,13 @@ const Tab1: React.FC = () => {
 
   const [fuelPrice, setFuelPrice] = React.useState<number>(0);
   const [fuelCurrency, setFuelCurrency] = React.useState<string>('ISK');
+
+  const manualFuelAlertRef = React.useRef<HTMLIonAlertElement>(null);
+  const automaticFuelAlertRef = React.useRef<HTMLIonAlertElement>(null);
+
+  const [fuelStations, setFuelStations] = React.useState<any[]>([]);
+
+  console.log(lastPoint);
 
   async function getData() {
     const current = await getCurrentDrive()
@@ -204,7 +213,7 @@ const Tab1: React.FC = () => {
                 </div>
               </IonCard>
 
-              <IonCard className="fuel-card" button id='open-fuel' style={{ marginBottom: '0', marginTop: '10px' }}>
+              <IonCard className="fuel-card" button id='open-fuel-actions' style={{ marginBottom: '0', marginTop: '10px' }}>
                 <div className="rural-sign-card--container-x">
                 <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel</span>
                 <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==fuelCurrency)?.format.replace('%','')}</span>
@@ -285,8 +294,39 @@ const Tab1: React.FC = () => {
           }}
         ></IonAlert>
 
+          <IonActionSheet
+            trigger="open-fuel-actions"
+            header="Set new fuel price"
+            buttons={[
+              {
+                text: 'Set manually',
+                data: {
+                  action: 'manual',
+                },
+              },
+              {
+                text: 'Link to fuel station',
+                data: {
+                  action: 'automatic',
+                },
+              },
+              {
+                text: 'Cancel',
+                role: 'cancel',
+                data: {
+                  action: 'cancel',
+                },
+              },
+            ]}
+            onDidDismiss={(event) => {
+              console.log(event);
+              if (event.detail.data?.action === 'manual') manualFuelAlertRef.current?.present();
+              if (event.detail.data?.action === 'automatic') automaticFuelAlertRef.current?.present();
+            }}
+          ></IonActionSheet>
+
         <IonAlert
-          trigger="open-fuel"
+          ref={manualFuelAlertRef}
           header={"Type the new fuel price, per litre, in " + fuelCurrency}
           buttons={['OK']}
           inputs={[
@@ -306,8 +346,142 @@ const Tab1: React.FC = () => {
               setFuelPrice(parseFloat(event.detail.data.values[0]));
               
               await Preferences.set({ key: 'fuelPrice', value: event.detail.data.values[0] });
+              await Preferences.remove({ key: 'fuelSyncStation' });
           }}
         ></IonAlert>
+
+        <IonAlert
+          onIonAlertWillPresent={async () => {
+            if (fuelCurrency == 'ISK') {
+              const fuelQuery = await genericAxiosClient.get('https://raw.githubusercontent.com/gasvaktin/gasvaktin/refs/heads/master/vaktin/gas.json');
+              const stations = fuelQuery.data.stations;
+              const sArr: any[] = [];
+              for (const i in stations) {
+                const station = stations[i];
+                
+                if (station.bensin95) {
+                  sArr.push({
+                    type: 'radio',
+                    label: `${station.name} ${station.company} (Bensín)`,
+                    value: `gasvatkin-${station.key}-bensin95`,
+                    price: station.bensin95,
+                  });
+                }
+
+                if (station.diesel) {
+                  sArr.push({
+                    type: 'radio',
+                    label: `${station.name} ${station.company} (Dísel)`,
+                    value: `gasvatkin-${station.key}-diesel`,
+                    price: station.diesel,
+                  });
+                }
+
+              }
+              setFuelStations(sArr.sort((a, b) => a.label.localeCompare(b.label)));
+            }
+            if (fuelCurrency == 'GBP') {
+
+                const { data: applegreenData } = await Http.request({ method: 'GET', url: 'https://applegreenstores.com/fuel-prices/data.json' });
+                const { data: asconaData } = await Http.request({ method: 'GET', url: 'https://fuelprices.asconagroup.co.uk/newfuel.json' });
+                const { data: asdaData } = await Http.request({ method: 'GET', url: 'https://storelocator.asda.com/fuel_prices_data.json' });
+                const { data: bpData } = await Http.request({ method: 'GET', url: 'https://www.bp.com/en_gb/united-kingdom/home/fuelprices/fuel_prices_data.json' });
+                const { data: essoData } = await Http.request({ method: 'GET', url: 'https://fuelprices.esso.co.uk/latestdata.json' });
+                const { data: jetData } = await Http.request({ method: 'GET', url: 'https://jetlocal.co.uk/fuel_prices_data.json' });
+                const { data: karanData } = await Http.request({ method: 'GET', url: 'https://api2.krlmedia.com/integration/live_price/krl' });
+                const { data: morrisonsData } = await Http.request({ method: 'GET', url: 'https://www.morrisons.com/fuel-prices/fuel.json' });
+                const { data: motoData } = await Http.request({ method: 'GET', url: 'https://moto-way.com/fuel-price/fuel_prices.json' });
+                const { data: motorFuelData } = await Http.request({ method: 'GET', url: 'https://fuel.motorfuelgroup.com/fuel_prices_data.json' });
+                const { data: rontecData } = await Http.request({ method: 'GET', url: 'https://www.rontec-servicestations.co.uk/fuel-prices/data/fuel_prices_data.json' });
+                const { data: sainsburysData } = await Http.request({ method: 'GET', url: 'https://api.sainsburys.co.uk/v1/exports/latest/fuel_prices_data.json' });
+                const { data: shellData } = await Http.request({ method: 'GET', url: 'https://www.shell.co.uk/fuel-prices-data.html' });
+                const { data: sgnData } = await Http.request({ method: 'GET', url: 'https://www.sgnretail.uk/files/data/SGN_daily_fuel_prices.json' });
+                const { data: tescoData } = await Http.request({ method: 'GET', url: 'https://www.tesco.com/fuel_prices/fuel_prices_data.json' });
+
+                const stations = [
+                ...(applegreenData.stations || []).map((s: any) => { return { ...s, source: 'applegreen' } }),
+                ...(asconaData.stations || []).map((s: any) => { return { ...s, source: 'ascona' } }),
+                ...(asdaData.stations || []).map((s: any) => { return { ...s, source: 'asda' } }),
+                ...(bpData.stations || []).map((s: any) => { return { ...s, source: 'bp' } }),
+                ...(essoData.stations || []).map((s: any) => { return { ...s, source: 'esso' } }),
+                ...(jetData.stations || []).map((s: any) => { return { ...s, source: 'jet' } }),
+                ...(karanData.stations || []).map((s: any) => { return { ...s, source: 'karan' } }),
+                ...(morrisonsData.stations || []).map((s: any) => { return { ...s, source: 'morrisons' } }),
+                ...(motoData.stations || []).map((s: any) => { return { ...s, source: 'moto' } }),
+                ...(motorFuelData.stations || []).map((s: any) => { return { ...s, source: 'motorfuel' } }),
+                ...(rontecData.stations || []).map((s: any) => { return { ...s, source: 'rontec' } }),
+                ...(sainsburysData.stations || []).map((s: any) => { return { ...s, source: 'sainsburys' } }),
+                ...(shellData.stations || []).map((s: any) => { return { ...s, source: 'shell' } }),
+                ...(sgnData.stations || []).map((s: any) => { return { ...s, source: 'sgn' } }),
+                ...(tescoData.stations || []).map((s: any) => { return { ...s, source: 'tesco' } }),
+                ];
+
+                console.log(stations);
+
+              const sArr: any[] = [];
+              for (const i in stations) {
+                const station = stations[i];
+                
+                  if (station.prices.E10) {
+                    sArr.push({
+                      type: 'radio',
+                      label: `${station.brand} ${station.address} (Unleaded E10)`,
+                      value: `${station.source}-${station.site_id}-E10`,
+                      latitude: station.location.latitude,
+                      longitude: station.location.longitude,
+                      price: Math.round(station.prices.E10) / 100,
+                    });
+                  }
+
+                  if (station.prices.E5) {
+                    sArr.push({
+                      type: 'radio',
+                      label: `${station.brand} ${station.address} (Unleaded E5)`,
+                      value: `${station.source}-${station.site_id}-E5`,
+                      latitude: station.location.latitude,
+                      longitude: station.location.longitude,
+                      price: Math.round(station.prices.E5) / 100,
+                    });
+                  }
+
+                  if (station.prices.B7) {
+                    sArr.push({
+                      type: 'radio',
+                      label: `${station.brand} ${station.address} (Diesel)`,
+                      value: `${station.source}-${station.site_id}-B7`,
+                      latitude: station.location.latitude,
+                      longitude: station.location.longitude,
+                      price: Math.round(station.prices.B7) / 100,
+                    });
+                  }
+
+              }
+
+              const sorted = sArr.sort((a, b) => {
+                if (lastPoint) 
+                return getDistance(lastPoint.latitude, lastPoint.longitude, a.latitude, a.longitude) - getDistance(lastPoint.latitude, lastPoint.longitude, b.latitude, b.longitude);
+                //return getDistance(54.890989, -6.132461, a.latitude, a.longitude) - getDistance(54.890989, -6.132461, b.latitude, b.longitude);
+
+                return a.label.localeCompare(b.label);
+              });
+              setFuelStations(sorted);
+              console.log(sorted);
+            }
+          }}
+          ref={automaticFuelAlertRef}
+          header={`Select a ${fuelCurrency} fuel station to link to`}
+          buttons={['OK']}
+          inputs={fuelStations}
+          onDidDismiss={(event) => {
+              console.log(event.detail);
+              if (!event.detail.data) return;
+              if (!event.detail.data.values) return;
+              Preferences.set({ key: 'fuelSyncStation', value: event.detail.data.values });
+              Preferences.set({ key: 'fuelPrice', value: fuelStations.find(s => s.value == event.detail.data.values)?.price });
+              setFuelPrice(fuelStations.find(s => s.value == event.detail.data.values)?.price);
+          }}
+        ></IonAlert>
+
             </>
           }
 

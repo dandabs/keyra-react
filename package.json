@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.11.0",
+    "@capacitor-community/http": "^1.4.1",
     "@capacitor-community/sqlite": "^7.0.0",
     "@capacitor/camera": "^7.0.0",
     "@capacitor/core": "7.0.1",
