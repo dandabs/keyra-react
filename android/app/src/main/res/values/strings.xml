@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Keyra</string>
+    <string name="title_activity_main">Keyra</string>
+    <string name="package_name">is.dsk.keyra</string>
+    <string name="custom_url_scheme">is.dsk.keyra</string>
+</resources>

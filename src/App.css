@@ -1,0 +1,46 @@
+@font-face {
+  font-family: "Transport New";
+  font-style: normal;
+  font-weight: normal;
+  src: url("./fonts/transport-new-medium.woff");
+}
+
+@font-face {
+  font-family: "Transport New";
+  font-weight: bolder;
+  src: url("./fonts/transport-new-heavy.woff");
+}
+
+@font-face {
+  font-family: "Transport New";
+  font-weight: lighter;
+  src: url("./fonts/transport-new-light.woff");
+}
+
+@font-face {
+  font-family: "14 Segment";
+  font-weight: normal;
+  src: url("./fonts/14-segment-regular.ttf");
+}
+
+* {
+  font-family: "Transport New";
+  letter-spacing: 1px;
+}
+
+button {
+  font-weight: bold;
+}
+
+.content-top {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px;
+  gap: 25px;
+}
+
+.car-subtext {
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+}

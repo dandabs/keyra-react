@@ -1,0 +1,73 @@
+.profile-container {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar {
+    height: 8rem;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.avatar::part(image) {
+    border-radius: 100%;
+    border: 3px solid black;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0.5rem 0;
+}
+
+.sign-outline {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--ion-color-warning);
+    padding: 5px 15px;
+    border-radius: 3px;
+    border: 2px solid black;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    position: relative;
+    color: black;
+}
+
+.sign-outline > .sign-route {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: white;
+    padding: 1px 3px;
+    border: 2px solid black;
+}
+.sign-route > span {
+    letter-spacing: 2px;
+    padding-left: 2px;
+}
+
+.sub-text {
+    margin-top: -3px;
+    color: var(--ion-color-medium);
+}
+
+.list {
+    width: 100%;
+}
+
+.text-start2 {
+    text-align: start;
+    width: 100%;
+}
+
+.end::part(native) {
+    align-self: right;
+    display: block;
+}

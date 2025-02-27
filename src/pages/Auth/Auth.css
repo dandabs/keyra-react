@@ -1,0 +1,39 @@
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    gap: 25px;
+}
+
+.hero {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+}
+
+.hero > .image {
+    height: 10rem;
+    align-self: last baseline;
+}
+
+.hero > .image::part(image) {
+    width: unset;
+}
+
+.hero > .text {
+    text-align: end;
+    align-self: last baseline;
+}
+
+.hero > .text-start {
+    text-align: start;
+    align-self: last baseline;
+}
+
+.text-start > p {
+    text-align: start;
+}

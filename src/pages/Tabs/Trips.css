@@ -1,0 +1,43 @@
+.location-icon-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.location-icon-container > ion-icon {
+    font-size: 1.7rem;
+    color: var(--ion-color-primary-tint);
+    flex-shrink: 0;
+}
+
+.location-icon-container > .place {
+    flex-grow: 1;
+}
+
+.location-icon-container > .time {
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+}
+
+.locations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-left: -0.3rem;
+}
+
+.drive-inner-container {
+    padding: 10px 0px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.drive-details-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+}

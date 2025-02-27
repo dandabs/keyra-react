@@ -1,0 +1,61 @@
+PODS:
+  - Capacitor (7.0.1):
+    - CapacitorCordova
+  - CapacitorCommunitySqlite (7.0.0):
+    - Capacitor
+    - SQLCipher
+    - ZIPFoundation
+  - CapacitorCordova (7.0.1)
+  - CapacitorPreferences (7.0.0):
+    - Capacitor
+  - CapacitorSplashScreen (7.0.0):
+    - Capacitor
+  - CordovaPlugins (7.0.1):
+    - CapacitorCordova
+  - SQLCipher (4.6.1):
+    - SQLCipher/standard (= 4.6.1)
+  - SQLCipher/common (4.6.1)
+  - SQLCipher/standard (4.6.1):
+    - SQLCipher/common
+  - ZIPFoundation (0.9.19)
+
+DEPENDENCIES:
+  - "Capacitor (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorCommunitySqlite (from `../../node_modules/@capacitor-community/sqlite`)"
+  - "CapacitorCordova (from `../../node_modules/@capacitor/ios`)"
+  - "CapacitorPreferences (from `../../node_modules/@capacitor/preferences`)"
+  - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
+  - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
+
+SPEC REPOS:
+  trunk:
+    - SQLCipher
+    - ZIPFoundation
+
+EXTERNAL SOURCES:
+  Capacitor:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorCommunitySqlite:
+    :path: "../../node_modules/@capacitor-community/sqlite"
+  CapacitorCordova:
+    :path: "../../node_modules/@capacitor/ios"
+  CapacitorPreferences:
+    :path: "../../node_modules/@capacitor/preferences"
+  CapacitorSplashScreen:
+    :path: "../../node_modules/@capacitor/splash-screen"
+  CordovaPlugins:
+    :path: "../capacitor-cordova-ios-plugins"
+
+SPEC CHECKSUMS:
+  Capacitor: de199cba6c8b20995428ad0b7cb0bc6ca625ffd4
+  CapacitorCommunitySqlite: b11e556cf5d149f9e0b6fbbb47959a6cd718c3d0
+  CapacitorCordova: 63d476958d5022d76f197031e8b7ea3519988c64
+  CapacitorPreferences: 8e4bef1f937fc991a19d7ea99330c36a62edd24b
+  CapacitorSplashScreen: 7e7a0a1113833032f196b3af6fa437baccacf5bc
+  CordovaPlugins: 7f8be44bad55b268b9f3f9468b139c4988f6bf5e
+  SQLCipher: 77fbe633cd84db04b07876dd50766b4924b57d61
+  ZIPFoundation: b8c29ea7ae353b309bc810586181fd073cb3312c
+
+PODFILE CHECKSUM: 1ba197239544ade15c762f0f4a8552f981b30fe6
+
+COCOAPODS: 1.16.2
