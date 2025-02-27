@@ -1,20 +1,17 @@
 import React, { useRef, useState } from 'react';
 import './ProfileContainer.css';
 import { IonButton, IonImg, IonItem, IonSkeletonText, IonLabel, IonList, IonListHeader, IonNote, IonText, IonButtons, useIonViewWillEnter, IonModal, IonRefresher, IonRefresherContent, RefresherEventDetail, IonInput, IonSelect, IonSelectOption } from '@ionic/react';
-import userPool, { getUserDetails } from '../cognitoConfig';
+import userPool from '../cognitoConfig';
 import { useHistory } from 'react-router';
 import CreateCarModalContainer from './CreateCarModalContainer';
 import { apiAxiosClient } from '../axios';
-import { Preferences } from '@capacitor/preferences';
 import currencies from '../currencies';
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { useFuel } from '../contexts/FuelContext';
+import { useProfile } from '../contexts/ProfileContext';
 
 const ProfileContainer: React.FC = () => {
-    const [attributes, setAttributes] = React.useState<any>(null);
-
-    const [carsLoading, setCarsLoading] = useState(false);
-    const [cars, setCars] = React.useState([]);
+    const { cars, attributes, updateAttributes } = useProfile()!;
 
     const [friendsLoading, setFriendsLoading] = useState(false);
     const [friends, setFriends] = React.useState([]);
@@ -30,7 +27,7 @@ const ProfileContainer: React.FC = () => {
 
     const [imageData, setImageData] = useState<string | null>(null);
 
-    const [numberSystem, setNumberSystem] = useState<string | null>(null);
+    const { numberSystem, setNumberSystem } = useProfile()!;
 
     const { fuelCurrency, setFuelCurrency } = useFuel()!;
 
@@ -40,18 +37,8 @@ const ProfileContainer: React.FC = () => {
     const preferencesModal = useRef<HTMLIonModalElement>(null);
 
     async function doFetch(event?: CustomEvent<RefresherEventDetail>) {
-      const attr = await getUserDetails();
-      setAttributes(attr);
-      setUsername(attr.preferred_username);
-      setName(attr.name);
-      setLocation(attr.address);
-
-      const { value } = await Preferences.get({ key: 'numberSystem' });
-      setNumberSystem(value || 'metric');
-
-      setCarsLoading(true); setFriendsLoading(true);
+      setFriendsLoading(true);
       await Promise.all([
-        apiAxiosClient.get('/car').then((res) => { setCars(res.data); setCarsLoading(false); }),
         apiAxiosClient.get('/friend').then((res) => { setFriends(res.data); setFriendsLoading(false); })
       ])
 
@@ -61,6 +48,12 @@ const ProfileContainer: React.FC = () => {
     React.useEffect(() => {
         doFetch();
     }, []);
+
+    React.useEffect(() => {
+      setUsername(attributes?.preferred_username);
+      setName(attributes?.name);
+      setLocation(attributes?.address);
+    }, [attributes])
 
     async function saveProfile() {
       if (username.trim() === '') {
@@ -73,40 +66,14 @@ const ProfileContainer: React.FC = () => {
       }
   
       try {
-        const cognitoUser = userPool.getCurrentUser();
-        if (!cognitoUser) throw Error();
-  
-        cognitoUser.getSession((err: Error) => {
-          if (err) {
-              setUsernameError('Failed to get session: ' + err);
-          } else {
-              cognitoUser.updateAttributes([
-                  { Name: 'preferred_username', Value: username },
-                  { Name: 'name', Value: name },
-                  { Name: 'address', Value: location },
-                ], (err) => {
-                  if (err) {
-                    setUsernameError(err.message);
-                  } else {
-                    setUsernameError('')
-                    profileModal.current?.dismiss();
-                    doFetch();
-                  }
-                });
-          }
-        });
-        
+        await updateAttributes([
+          { Name: 'preferred_username', Value: username },
+          { Name: 'name', Value: name },
+          { Name: 'address', Value: location },
+        ]);
       } catch (err) {
         setUsernameError('An error occurred: ' + err);
       }
-    }
-
-    async function savePreferences() {
-      await Preferences.set({
-        key: 'numberSystem',
-        value: numberSystem || 'metric',
-      });
-      preferencesModal.current?.dismiss();
     }
 
     const selectImage = async (source: CameraSource) => {
@@ -137,25 +104,7 @@ const ProfileContainer: React.FC = () => {
         console.log("Upload Success:", response.data.url);
 
         try {
-          const cognitoUser = userPool.getCurrentUser();
-          if (!cognitoUser) throw Error();
-    
-          cognitoUser.getSession((err: Error) => {
-            if (err) {
-                console.log('Failed to get session: ' + err);
-            } else {
-                cognitoUser.updateAttributes([
-                    { Name: 'picture', Value: response.data.url },
-                  ], (err) => {
-                    if (err) {
-                      console.log('An error occurred saving the photo: ' + err);
-                    } else {
-                      doFetch();
-                    }
-                  });
-            }
-          });
-          
+          await updateAttributes([ { Name: 'picture', Value: response.data.url } ])
         } catch (err) {
           console.log('An error occurred saving the photo: ' + err);
         }
@@ -192,7 +141,7 @@ const ProfileContainer: React.FC = () => {
         <IonButton id="create-car">Create</IonButton>
       </IonListHeader>
       {
-        carsLoading && (
+        !cars && (
           <IonItem>
             <IonLabel>
               <div><IonSkeletonText animated={true} style={{ width: '120px' }}></IonSkeletonText></div>
@@ -203,7 +152,7 @@ const ProfileContainer: React.FC = () => {
         )
       }
       {
-        !carsLoading && cars.map((car: any) => (
+        cars && cars.map((car: any) => (
           <IonItem key={car.PK} button onClick={() => { history.push(`/tabs/profile/cars/${car.PK}`) }}>
             <IonLabel>
               <div>{car.name}</div>
@@ -299,9 +248,6 @@ const ProfileContainer: React.FC = () => {
             </IonSelect>
           </IonItem>
         </IonList>
-        <IonButton onClick={savePreferences} expand="block">
-            Save
-        </IonButton>
       </div>
     </IonModal>
 

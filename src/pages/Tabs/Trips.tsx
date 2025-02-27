@@ -3,25 +3,21 @@ import { IonAlert, IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonIt
 import './Trips.css';
 import { apiAxiosClient } from '../../axios';
 import { carSharp, locationSharp, trashBin } from 'ionicons/icons';
-import { msToM, msToTimeLabel, mToKmLabel, mToMi, mToMiLabel } from '../../utils';
-import { Preferences } from '@capacitor/preferences';
+import { msToTimeLabel, mToKmLabel, mToMiLabel } from '../../utils';
 import { useHistory } from 'react-router';
+import { useProfile } from '../../contexts/ProfileContext';
 
 const Trips: React.FC = () => {
   const [drives, setDrives] = useState([]);
-  const [numberSystem, setNumberSystem] = useState('metric');
   const history = useHistory();
 
-  const [cars, setCars] = useState([]);
+  const { numberSystem, setNumberSystem, cars } = useProfile()!;
+
   const [changeCarAlertId, setChangeCarAlertId] = useState<null | string>(null);
 
   async function getData(event?: CustomEvent<RefresherEventDetail>) {
     const driveRes = await apiAxiosClient.get('/drives');
     setDrives(driveRes.data);
-    setNumberSystem((await Preferences.get({ key: 'numberSystem' })).value || 'metric');
-
-    const carRes = await apiAxiosClient.get('/car');
-    setCars(carRes.data);
 
     if (event) event.detail.complete();
   }
@@ -107,11 +103,11 @@ const Trips: React.FC = () => {
           isOpen={!!changeCarAlertId}
           header={"Select the new car for this trip"}
           buttons={['OK']}
-          inputs={cars.map((car: any) => ({
+          inputs={cars ? cars.map((car: any) => ({
             type: 'radio',
             label: car.name,
             value: car.PK,
-          }))}
+          })) : []}
           onDidDismiss={async (event) => {
               setChangeCarAlertId(null);
               console.log(event.detail);

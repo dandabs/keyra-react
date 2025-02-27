@@ -28,33 +28,3 @@ export const getToken = async () => {
     });
   });
 }
-
-export const getUserDetails = async () => {
-  return new Promise<any>((resolve, reject) => {
-    const cognitoUser = userPool.getCurrentUser();
-
-    if (!cognitoUser) {
-      reject('No user is authenticated.');
-      return;
-    }
-
-    cognitoUser.getSession((err: Error) => {
-      if (err) {
-        reject('Failed to get session: ' + err);
-        return;
-      }
-
-      cognitoUser.getUserAttributes((err, attributes) => {
-        if (err) {
-          reject('Failed to get user attributes: ' + err);
-        } else {
-          const userInfo: any = {};
-          (attributes || []).forEach(attribute => {
-            userInfo[attribute.Name] = attribute.Value;
-          });
-          resolve(userInfo);
-        }
-      });
-    });
-  });
-};

@@ -7,6 +7,7 @@ import { LatLngExpression, Map } from 'leaflet';
 import L from "leaflet";
 import { Preferences } from '@capacitor/preferences';
 import { formatCurrency, msToKmh, msToKmhLabel, msToMph, msToMphLabel, mToKm, mToMi } from '../../utils';
+import { useProfile } from '../../contexts/ProfileContext';
 
 const FitBounds = ({ points }: { points: { latitude: number; longitude: number }[] }) => {
     const map = useMap();
@@ -84,14 +85,13 @@ const DriveView: React.FC = () => {
 
     const [showModal, setShowModal] = useState(false);
 
-    const [numberSystem, setNumberSystem] = useState("metric");
+    const { numberSystem, setNumberSystem } = useProfile()!;
 
     const mapRef = React.useRef<Map>(null);
 
     async function getData() {
         const response = await apiAxiosClient.get(`/drives/${driveId}`);
         setDrive(response.data);
-        setNumberSystem((await Preferences.get({ key: "numberSystem" })).value || "metric");
     }
 
     useEffect(() => {

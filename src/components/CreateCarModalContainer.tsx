@@ -6,6 +6,7 @@ import { toSentenceCase } from '../util';
 import { apiAxiosClient, genericAxiosClient } from '../axios';
 import { AxiosError } from 'axios';
 import { Preferences } from '@capacitor/preferences';
+import { useProfile } from '../contexts/ProfileContext';
 
 const CreateCarModalContainer: React.FC = () => {
     const history = useHistory();
@@ -14,6 +15,8 @@ const CreateCarModalContainer: React.FC = () => {
     const [registrationError, setRegistrationError] = useState('');
 
     const [isDataFromApi, setIsDataFromApi] = useState(true);
+
+    const { setDefaultCar } = useProfile()!;
 
     const [make, setMake] = useState('');
     const [model, setModel] = useState('');
@@ -67,7 +70,7 @@ const CreateCarModalContainer: React.FC = () => {
                 colour,
                 year
             });
-            await Preferences.set({ key: 'defaultCar', value: registration });
+            setDefaultCar(registration);
             history.push(`/tabs/profile/cars/${registration}`);
         } catch (e) {
             setRegistrationError(e as any);

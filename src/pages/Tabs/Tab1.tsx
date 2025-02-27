@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { IonActionSheet, IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader, IonNavLink, IonPage, IonText, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter } from '@ionic/react';
 import './Dashboard.css';
 import { useDrive } from '../../contexts/DriveContext';
-import { getUserDetails } from '../../cognitoConfig';
 import { endDrive, getCurrentDrive, MINIMUM_DRIVE_PAUSE_SPEED, syncDrivesToServer } from '../../driveHandler';
 
 import { Http } from '@capacitor-community/http';
@@ -15,23 +14,21 @@ import { Preferences } from '@capacitor/preferences';
 import currencies from '../../currencies';
 import { Link } from 'react-router-dom';
 import { useFuel } from '../../contexts/FuelContext';
+import { useProfile } from '../../contexts/ProfileContext';
 
 let accelHandler: PluginListenerHandle;
 
 const Tab1: React.FC = () => {
   const { currentDrive, lastPoint } = useDrive()!;
-  const [user, setUser] = React.useState<any>(null);
-  const [drive, setDrive] = React.useState<any>(null);
 
-  const [stats, setStats] = React.useState<any>(null);
+  const [drive, setDrive] = React.useState<any>(null);
 
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
 
   const [present, dismiss] = useIonLoading();
 
-  const [numberSystem, setNumberSystem] = React.useState<string>('metric');
-
-  const [cars, setCars] = React.useState<any[]>([]);
+  const { numberSystem, setNumberSystem, yearStats, cars, refreshCars, attributes } = useProfile()!;
+  
   const [defaultCar, setDefaultCar] = React.useState<any>(null);
 
   const changeDefaultCarAlertRef = React.useRef<HTMLIonAlertElement>(null);
@@ -49,14 +46,7 @@ const Tab1: React.FC = () => {
   async function getData() {
     const current = await getCurrentDrive()
     if (!currentDrive) setDrive(current);
-    if (!user) setUser(await getUserDetails());
-    setCars((await apiAxiosClient.get('/car')).data);
     setDefaultCar((await Preferences.get({ key: 'defaultCar' })).value);
-
-    setNumberSystem((await (await Preferences.get({ key: 'numberSystem' })).value) || 'metric');
-    
-    const statsResult = await apiAxiosClient.get(`/stats/year/${new Date().getFullYear()}`);
-    setStats(statsResult.data);
 
     accelHandler = await Motion.addListener('accel', event => {
       console.log(event);
@@ -86,7 +76,7 @@ const Tab1: React.FC = () => {
       <IonContent fullscreen>
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large">Hey {user?.name}</IonTitle>
+            <IonTitle size="large">Hey {attributes?.name}</IonTitle>
             <IonButtons collapse={true} slot="end" style={{ paddingRight: '10px' }}>
               <div>
                 <div className="speed-sign">
@@ -166,27 +156,27 @@ const Tab1: React.FC = () => {
 
                 <div className="urban-sign-card--place">
                   <span>Distance</span>
-                  <span>{numberSystem === 'metric' ? mToKmLabel(stats?.totalDistance) : mToMiLabel(stats?.totalDistance) }</span>
+                  <span>{numberSystem === 'metric' ? mToKmLabel(yearStats?.totalDistance) : mToMiLabel(yearStats?.totalDistance) }</span>
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Time</span>
-                  <span>{msToTimeLabel(stats?.totalDuration)}</span>
+                  <span>{msToTimeLabel(yearStats?.totalDuration)}</span>
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Cost</span>
-                  <span>{formatCurrency(stats?.totalCost || 0, fuelCurrency)}</span>
+                  <span>{formatCurrency(yearStats?.totalCost || 0, fuelCurrency)}</span>
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Speed (Ø)</span>
-                  <span>{numberSystem === 'metric' ? msToKmhLabel(stats?.averageSpeed) : msToMphLabel(stats?.averageSpeed)}</span>
+                  <span>{numberSystem === 'metric' ? msToKmhLabel(yearStats?.averageSpeed) : msToMphLabel(yearStats?.averageSpeed)}</span>
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Speed (&#8811;)</span>
-                  <span>{numberSystem === 'metric' ? msToKmhLabel(stats?.topSpeed) : msToMphLabel(stats?.topSpeed)}</span>
+                  <span>{numberSystem === 'metric' ? msToKmhLabel(yearStats?.topSpeed) : msToMphLabel(yearStats?.topSpeed)}</span>
                 </div>
 
               </div>
@@ -194,7 +184,7 @@ const Tab1: React.FC = () => {
           </IonCard>
 
           {
-            defaultCar &&
+            defaultCar && cars &&
             <>
               <h2>Drive preferences</h2>
 
@@ -288,7 +278,7 @@ const Tab1: React.FC = () => {
                 ...cars.find(car => car.PK == defaultCar),
                 efficiencyMpg: (numberSystem == 'metric' ? 282.48 / parseInt(event.detail.data.values[0]) : parseInt(event.detail.data.values[0])) || cars.find(car => car.PK == defaultCar).efficiencyMpg,
               });
-              setCars((await apiAxiosClient.get('/car')).data);
+              refreshCars();
           }}
         ></IonAlert>
 

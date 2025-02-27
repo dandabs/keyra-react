@@ -29,23 +29,6 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
 
     async function getData() {
         setCurrentDrive(null);
-
-        const defaultCar = await Preferences.get({ key: 'defaultCar' });
-        if (!defaultCar.value) {
-            const carApiResult = await apiAxiosClient.get('/car');
-            if (carApiResult.data.length > 0) {
-                await Preferences.set({ key: 'defaultCar', value: carApiResult.data[0].PK });
-            }
-        } else {
-            const carApiResult = await apiAxiosClient.get('/car');
-            if (!carApiResult.data.find((car: any) => car.PK === defaultCar.value)) {
-                if (carApiResult.data.length > 0) {
-                    await Preferences.set({ key: 'defaultCar', value: carApiResult.data[0].PK });
-                } else {
-                    await Preferences.remove({ key: 'defaultCar' });
-                }
-            }
-        }
     }
 
     useEffect(() => {

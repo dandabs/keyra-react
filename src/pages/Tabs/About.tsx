@@ -60,6 +60,13 @@ const About: React.FC = () => {
                         </div>
                     </IonItem>
                     <IonItem style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src="https://assets.publishing.service.gov.uk/media/59fa00e7e5274a5654e4e39a/CMA_Logo_01.png" style={{ width: '25vw' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: '1rem', textAlign: 'center', width: '100%'}}>
+                            <p><strong>Competition & Markets Authority</strong></p>
+                            <p>UK fuel prices</p>
+                        </div>
+                    </IonItem>
+                    <IonItem style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Openstreetmap_logo.svg/1200px-Openstreetmap_logo.svg.png" style={{ width: '25vw' }} />
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: '1rem', textAlign: 'center', width: '100%'}}>
                             <p><strong>OpenStreetMap</strong></p>
