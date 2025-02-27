@@ -5,6 +5,7 @@ import { britishRegistrationPlate, icelandicRegistrationPlate } from '../regExp'
 import { toSentenceCase } from '../util';
 import { apiAxiosClient, genericAxiosClient } from '../axios';
 import { AxiosError } from 'axios';
+import { Preferences } from '@capacitor/preferences';
 
 const CreateCarModalContainer: React.FC = () => {
     const history = useHistory();
@@ -66,6 +67,7 @@ const CreateCarModalContainer: React.FC = () => {
                 colour,
                 year
             });
+            await Preferences.set({ key: 'defaultCar', value: registration });
             history.push(`/tabs/profile/cars/${registration}`);
         } catch (e) {
             setRegistrationError(e as any);

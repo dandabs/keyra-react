@@ -36,6 +36,15 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
             if (carApiResult.data.length > 0) {
                 await Preferences.set({ key: 'defaultCar', value: carApiResult.data[0].PK });
             }
+        } else {
+            const carApiResult = await apiAxiosClient.get('/car');
+            if (!carApiResult.data.find((car: any) => car.PK === defaultCar.value)) {
+                if (carApiResult.data.length > 0) {
+                    await Preferences.set({ key: 'defaultCar', value: carApiResult.data[0].PK });
+                } else {
+                    await Preferences.remove({ key: 'defaultCar' });
+                }
+            }
         }
 
         const fuelCurrency = await Preferences.get({ key: 'fuelCurrency' });

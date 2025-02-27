@@ -7,6 +7,7 @@ import CreateCarModalContainer from './CreateCarModalContainer';
 import { apiAxiosClient } from '../axios';
 import { Preferences } from '@capacitor/preferences';
 import currencies from '../currencies';
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
 const ProfileContainer: React.FC = () => {
     const [attributes, setAttributes] = React.useState<any>(null);
@@ -25,6 +26,8 @@ const ProfileContainer: React.FC = () => {
   
     const [location, setLocation] = useState('');
     const [locationError, setLocationError] = useState('');
+
+    const [imageData, setImageData] = useState<string | null>(null);
 
     const [numberSystem, setNumberSystem] = useState<string | null>(null);
 
@@ -110,6 +113,62 @@ const ProfileContainer: React.FC = () => {
       });
       preferencesModal.current?.dismiss();
     }
+
+    const selectImage = async (source: CameraSource) => {
+      try {
+        const photo = await Camera.getPhoto({
+          quality: 50,
+          allowEditing: true,
+          resultType: CameraResultType.Base64,
+          source,
+        });
+  
+        if (photo.base64String) {
+          const base64Image = `data:image/jpeg;base64,${photo.base64String}`;
+          setImageData(base64Image);
+          await uploadImage(photo.base64String);
+        }
+      } catch (error) {
+        console.error("Error selecting image:", error);
+      }
+    };
+  
+    const uploadImage = async (base64String: string) => {
+      try {
+        const response = await apiAxiosClient.post(`/profile/picture`, {
+          photo: base64String,
+        });
+  
+        console.log("Upload Success:", response.data.url);
+
+        try {
+          const cognitoUser = userPool.getCurrentUser();
+          if (!cognitoUser) throw Error();
+    
+          cognitoUser.getSession((err: Error) => {
+            if (err) {
+                console.log('Failed to get session: ' + err);
+            } else {
+                cognitoUser.updateAttributes([
+                    { Name: 'picture', Value: response.data.url },
+                  ], (err) => {
+                    if (err) {
+                      console.log('An error occurred saving the photo: ' + err);
+                    } else {
+                      doFetch();
+                    }
+                  });
+            }
+          });
+          
+        } catch (err) {
+          console.log('An error occurred saving the photo: ' + err);
+        }
+
+      } catch (error) {
+        console.error("Upload Error:", error);
+      }
+    };
     
   return (
     <div className="profile-container">
@@ -117,10 +176,12 @@ const ProfileContainer: React.FC = () => {
         <IonRefresherContent></IonRefresherContent>
       </IonRefresher>
       <div className="profile-header">
+        <IonButton onClick={() => selectImage(CameraSource.Prompt)} fill="clear">
         <IonImg
-        src="https://icelandair.overcastcdn.com/images/Web_image-Icekandair_max-liv.2e16d0ba.fill-1080x888-c100.jpg"
+        src={attributes?.picture ? attributes.picture + `?random=${Math.random()}` : "https://gravatar.com/avatar/default?f=y&d=mp"}
         className="avatar"
         ></IonImg>
+        </IonButton>
         <div className="sign-outline">
             <div className="sign-route">
                 <span>{ !friendsLoading ? friends.length : <IonSkeletonText animated={true} style={{ width: '10px' }}></IonSkeletonText> }</span>

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { IonActionSheet, IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader, IonPage, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter } from '@ionic/react';
+import { IonActionSheet, IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader, IonNavLink, IonPage, IonText, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter } from '@ionic/react';
 import './Dashboard.css';
 import { useDrive } from '../../contexts/DriveContext';
 import { getUserDetails } from '../../cognitoConfig';
@@ -11,6 +11,7 @@ import { formatCurrency, msToKmh, msToKmhLabel, msToM, msToMph, msToMphLabel, ms
 import { apiAxiosClient } from '../../axios';
 import { Preferences } from '@capacitor/preferences';
 import currencies from '../../currencies';
+import { Link } from 'react-router-dom';
 
 let accelHandler: PluginListenerHandle;
 
@@ -185,31 +186,34 @@ const Tab1: React.FC = () => {
             </div>
           </IonCard>
 
-          <h2>Drive preferences</h2>
+          {
+            defaultCar &&
+            <>
+              <h2>Drive preferences</h2>
 
-          <IonCard className="rural-sign-card" button id='open-car-actions' style={{ marginBottom: '0', marginTop: '5px' }}>
-            <div className="rural-sign-card--container-x">
-              <div className="rural-sign-card--route">{
-                numberSystem === 'metric' ?
-                Math.round(282.48 / cars.find((car => car.PK == defaultCar))?.efficiencyMpg)
-                :
-                Math.round(cars.find((car => car.PK == defaultCar))?.efficiencyMpg)
-                }</div>
-              <span style={{ flexGrow: 1, paddingLeft: '10px', paddingRight: '10px' }}>{cars.find((car => car.PK == defaultCar))?.name}</span>
-              <span>&rsaquo;</span>
-            </div>
-          </IonCard>
+              <IonCard className="rural-sign-card" button id='open-car-actions' style={{ marginBottom: '0', marginTop: '5px' }}>
+                <div className="rural-sign-card--container-x">
+                  <div className="rural-sign-card--route">{
+                    numberSystem === 'metric' ?
+                    Math.round(282.48 / cars.find((car => car.PK == defaultCar))?.efficiencyMpg)
+                    :
+                    Math.round(cars.find((car => car.PK == defaultCar))?.efficiencyMpg)
+                    }</div>
+                  <span style={{ flexGrow: 1, paddingLeft: '10px', paddingRight: '10px' }}>{cars.find((car => car.PK == defaultCar))?.name}</span>
+                  <span>&rsaquo;</span>
+                </div>
+              </IonCard>
 
-          <IonCard className="fuel-card" button id='open-fuel' style={{ marginBottom: '0', marginTop: '10px' }}>
-            <div className="rural-sign-card--container-x">
-            <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel</span>
-            <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==fuelCurrency)?.format.replace('%','')}</span>
-              <div className="fuel-card--price" style={{ marginRight: '10px' }}>{fuelPrice}</div>
-              <span>&rsaquo;</span>
-            </div>
-          </IonCard>
-      
-          <IonActionSheet
+              <IonCard className="fuel-card" button id='open-fuel' style={{ marginBottom: '0', marginTop: '10px' }}>
+                <div className="rural-sign-card--container-x">
+                <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel</span>
+                <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==fuelCurrency)?.format.replace('%','')}</span>
+                  <div className="fuel-card--price" style={{ marginRight: '10px' }}>{fuelPrice}</div>
+                  <span>&rsaquo;</span>
+                </div>
+              </IonCard>
+
+              <IonActionSheet
             trigger="open-car-actions"
             header="Default car"
             buttons={[
@@ -304,6 +308,17 @@ const Tab1: React.FC = () => {
               await Preferences.set({ key: 'fuelPrice', value: event.detail.data.values[0] });
           }}
         ></IonAlert>
+            </>
+          }
+
+          {
+            !defaultCar &&
+            <>
+            <IonText color="medium">
+            <p>Looking to record your drives? You&#39;ll need to create a car on the <Link to="/tabs/profile">Profile page</Link>.</p>
+            </IonText>
+            </>
+          }
 
         </div>
       </IonContent>
