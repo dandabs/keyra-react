@@ -8,6 +8,7 @@ import { apiAxiosClient } from '../axios';
 import { Preferences } from '@capacitor/preferences';
 import currencies from '../currencies';
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { useFuel } from '../contexts/FuelContext';
 
 const ProfileContainer: React.FC = () => {
     const [attributes, setAttributes] = React.useState<any>(null);
@@ -31,7 +32,7 @@ const ProfileContainer: React.FC = () => {
 
     const [numberSystem, setNumberSystem] = useState<string | null>(null);
 
-    const [fuelCurrency, setFuelCurrency] = useState('ISK');
+    const { fuelCurrency, setFuelCurrency } = useFuel()!;
 
     const history = useHistory();
     const modal = useRef<HTMLIonModalElement>(null);
@@ -47,8 +48,6 @@ const ProfileContainer: React.FC = () => {
 
       const { value } = await Preferences.get({ key: 'numberSystem' });
       setNumberSystem(value || 'metric');
-
-      setFuelCurrency((await Preferences.get({ key: 'fuelCurrency' })).value || 'ISK');
 
       setCarsLoading(true); setFriendsLoading(true);
       await Promise.all([
@@ -106,10 +105,6 @@ const ProfileContainer: React.FC = () => {
       await Preferences.set({
         key: 'numberSystem',
         value: numberSystem || 'metric',
-      });
-      await Preferences.set({
-        key: 'fuelCurrency',
-        value: fuelCurrency || 'ISK',
       });
       preferencesModal.current?.dismiss();
     }

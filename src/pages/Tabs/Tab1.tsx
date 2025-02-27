@@ -14,6 +14,7 @@ import { apiAxiosClient, genericAxiosClient } from '../../axios';
 import { Preferences } from '@capacitor/preferences';
 import currencies from '../../currencies';
 import { Link } from 'react-router-dom';
+import { useFuel } from '../../contexts/FuelContext';
 
 let accelHandler: PluginListenerHandle;
 
@@ -35,9 +36,8 @@ const Tab1: React.FC = () => {
 
   const changeDefaultCarAlertRef = React.useRef<HTMLIonAlertElement>(null);
   const changeEfficiencyAlertRef = React.useRef<HTMLIonAlertElement>(null);
-
-  const [fuelPrice, setFuelPrice] = React.useState<number>(0);
-  const [fuelCurrency, setFuelCurrency] = React.useState<string>('ISK');
+  
+  const { setFuelPrice, fuelPrice, setFuelCurrency, fuelCurrency, setFuelSyncStationId, fuelSyncStation } = useFuel()!;
 
   const manualFuelAlertRef = React.useRef<HTMLIonAlertElement>(null);
   const automaticFuelAlertRef = React.useRef<HTMLIonAlertElement>(null);
@@ -54,8 +54,6 @@ const Tab1: React.FC = () => {
     setDefaultCar((await Preferences.get({ key: 'defaultCar' })).value);
 
     setNumberSystem((await (await Preferences.get({ key: 'numberSystem' })).value) || 'metric');
-    setFuelCurrency((await Preferences.get({ key: 'fuelCurrency' })).value || 'ISK');
-    setFuelPrice(parseFloat((await Preferences.get({ key: 'fuelPrice' })).value || '0'));
     
     const statsResult = await apiAxiosClient.get(`/stats/year/${new Date().getFullYear()}`);
     setStats(statsResult.data);
@@ -217,7 +215,7 @@ const Tab1: React.FC = () => {
                 <div className="rural-sign-card--container-x">
                 <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel</span>
                 <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==fuelCurrency)?.format.replace('%','')}</span>
-                  <div className="fuel-card--price" style={{ marginRight: '10px' }}>{fuelPrice}</div>
+                  <div className="fuel-card--price" style={{ marginRight: '10px' }}>{fuelPrice.toFixed(currencies.find(c=>c.code==fuelCurrency)?.decimals || 0)}</div>
                   <span>&rsaquo;</span>
                 </div>
               </IonCard>
@@ -344,8 +342,6 @@ const Tab1: React.FC = () => {
               if (isNaN(parseFloat(event.detail.data.values[0]))) return;
 
               setFuelPrice(parseFloat(event.detail.data.values[0]));
-              
-              await Preferences.set({ key: 'fuelPrice', value: event.detail.data.values[0] });
               await Preferences.remove({ key: 'fuelSyncStation' });
           }}
         ></IonAlert>
@@ -426,7 +422,7 @@ const Tab1: React.FC = () => {
                     sArr.push({
                       type: 'radio',
                       label: `${station.brand} ${station.address} (Unleaded E10)`,
-                      value: `${station.source}-${station.site_id}-E10`,
+                      value: `${station.source}-${station.site_id}-prices.E10`,
                       latitude: station.location.latitude,
                       longitude: station.location.longitude,
                       price: Math.round(station.prices.E10) / 100,
@@ -437,7 +433,7 @@ const Tab1: React.FC = () => {
                     sArr.push({
                       type: 'radio',
                       label: `${station.brand} ${station.address} (Unleaded E5)`,
-                      value: `${station.source}-${station.site_id}-E5`,
+                      value: `${station.source}-${station.site_id}-prices.E5`,
                       latitude: station.location.latitude,
                       longitude: station.location.longitude,
                       price: Math.round(station.prices.E5) / 100,
@@ -448,7 +444,7 @@ const Tab1: React.FC = () => {
                     sArr.push({
                       type: 'radio',
                       label: `${station.brand} ${station.address} (Diesel)`,
-                      value: `${station.source}-${station.site_id}-B7`,
+                      value: `${station.source}-${station.site_id}-prices.B7`,
                       latitude: station.location.latitude,
                       longitude: station.location.longitude,
                       price: Math.round(station.prices.B7) / 100,
@@ -476,9 +472,8 @@ const Tab1: React.FC = () => {
               console.log(event.detail);
               if (!event.detail.data) return;
               if (!event.detail.data.values) return;
-              Preferences.set({ key: 'fuelSyncStation', value: event.detail.data.values });
-              Preferences.set({ key: 'fuelPrice', value: fuelStations.find(s => s.value == event.detail.data.values)?.price });
-              setFuelPrice(fuelStations.find(s => s.value == event.detail.data.values)?.price);
+              setFuelSyncStationId(event.detail.data.values);
+              setFuelPrice(fuelStations.find(s => s.value == event.detail.data.values)?.price)
           }}
         ></IonAlert>
 

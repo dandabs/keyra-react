@@ -46,16 +46,6 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
                 }
             }
         }
-
-        const fuelCurrency = await Preferences.get({ key: 'fuelCurrency' });
-        if (!fuelCurrency.value) {
-            await Preferences.set({ key: 'fuelCurrency', value: "ISK" });
-        }
-
-        const fuelPrice = await Preferences.get({ key: 'fuelPrice' });
-        if (!fuelPrice.value) {
-            await Preferences.set({ key: 'fuelPrice', value: "0" });
-        }
     }
 
     useEffect(() => {
