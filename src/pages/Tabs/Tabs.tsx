@@ -18,6 +18,7 @@ import { DriveProvider } from '../../contexts/DriveContext';
 import { initializeDatabase } from '../../databaseHandler';
 import { initializeLocationHandler } from '../../locationHandler';
 import DriveView from './Drive';
+import About from './About';
 
 const TabsLayout: React.FC = () => {
   return (
@@ -47,6 +48,10 @@ const TabsLayout: React.FC = () => {
 
           <Route path="/tabs/drive/:driveId">
             <DriveView />
+          </Route>
+
+          <Route path="/tabs/about">
+            <About />
           </Route>
 
         </IonRouterOutlet>

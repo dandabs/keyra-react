@@ -11,6 +11,17 @@ div.rural-sign-card--container-x {
     align-items: center;
     padding: 10px;
     font-size: 1.5rem;
+    font-weight: bold;
+}
+
+div.rural-sign-card--container-x-small {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: bold;
 }
 
 div.rural-sign-card--route {
@@ -27,8 +38,9 @@ div.rural-sign-card--route {
 }
 
 ion-card.fuel-card {
-    --background: var(--ion-color-success);
+    --background: var(--ion-color-success-shade);
     --color: var(--ion-color-black);
+    border: 3px solid white;
 }
 
 div.fuel-card--price {
@@ -37,7 +49,7 @@ div.fuel-card--price {
     justify-content: center;
     align-items: center;
     font-size: 2.5rem;
-    padding-top: 0.3rem;
+    padding-top: 0.4rem;
     padding-left: 1rem;
     padding-right: 1rem;
     color: var(--ion-color-danger);

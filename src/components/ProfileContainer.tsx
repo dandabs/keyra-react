@@ -118,7 +118,7 @@ const ProfileContainer: React.FC = () => {
       </IonRefresher>
       <div className="profile-header">
         <IonImg
-        src="https://i.imgur.com/TDIjZrD.jpeg"
+        src="https://icelandair.overcastcdn.com/images/Web_image-Icekandair_max-liv.2e16d0ba.fill-1080x888-c100.jpg"
         className="avatar"
         ></IonImg>
         <div className="sign-outline">
@@ -168,6 +168,9 @@ const ProfileContainer: React.FC = () => {
       </IonItem>
       <IonItem button onClick={() => preferencesModal.current?.present()}>
         <IonLabel>Edit preferences</IonLabel>
+      </IonItem>
+      <IonItem button onClick={() => history.push('/tabs/about')}>
+        <IonLabel>About</IonLabel>
       </IonItem>
       <IonItem button onClick={() => { userPool.getCurrentUser()?.signOut(); history.push('/'); }}>
         <IonLabel color="danger">Sign out</IonLabel>

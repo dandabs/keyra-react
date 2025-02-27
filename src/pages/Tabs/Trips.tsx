@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList, IonPage, IonRefresher, IonRefresherContent, IonTitle, IonToolbar, RefresherEventDetail } from '@ionic/react';
+import { IonAlert, IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList, IonPage, IonRefresher, IonRefresherContent, IonTitle, IonToolbar, RefresherEventDetail } from '@ionic/react';
 import './Trips.css';
 import { apiAxiosClient } from '../../axios';
 import { carSharp, locationSharp, trashBin } from 'ionicons/icons';
@@ -12,10 +12,17 @@ const Trips: React.FC = () => {
   const [numberSystem, setNumberSystem] = useState('metric');
   const history = useHistory();
 
+  const [cars, setCars] = useState([]);
+  const [changeCarAlertId, setChangeCarAlertId] = useState<null | string>(null);
+
   async function getData(event?: CustomEvent<RefresherEventDetail>) {
     const driveRes = await apiAxiosClient.get('/drives');
     setDrives(driveRes.data);
     setNumberSystem((await Preferences.get({ key: 'numberSystem' })).value || 'metric');
+
+    const carRes = await apiAxiosClient.get('/car');
+    setCars(carRes.data);
+
     if (event) event.detail.complete();
   }
 
@@ -78,10 +85,15 @@ const Trips: React.FC = () => {
                     </div>
                   </IonItem>
                   <IonItemOptions slot="end">
-                    <IonItemOption color="primary">
+                    <IonItemOption color="primary" id='changeCarAlert' onClick={async () => {
+                      setChangeCarAlertId(drive.PK);
+                    }}>
                       <IonIcon slot="icon-only" icon={carSharp}></IonIcon>
                     </IonItemOption>
-                    <IonItemOption color="danger" expandable={true}>
+                    <IonItemOption color="danger" expandable={true} onClick={async () => {
+                      await apiAxiosClient.delete(`/drives/${drive.PK}`);
+                      getData();
+                    }}>
                       <IonIcon slot="icon-only" icon={trashBin}></IonIcon>
                     </IonItemOption>
                   </IonItemOptions>
@@ -90,6 +102,41 @@ const Trips: React.FC = () => {
             }
           </IonList>
         </div>
+
+        <IonAlert
+          isOpen={!!changeCarAlertId}
+          header={"Select the new car for this trip"}
+          buttons={['OK']}
+          inputs={cars.map((car: any) => ({
+            type: 'radio',
+            label: car.name,
+            value: car.PK,
+          }))}
+          onDidDismiss={async (event) => {
+              setChangeCarAlertId(null);
+              console.log(event.detail);
+              if (!event.detail.data) return;
+              if (!event.detail.data.values) return;
+              const drive: any = drives.find((drive: any) => drive.PK === changeCarAlertId);
+              if (!drive) return;
+
+              await apiAxiosClient.put(`/drives/${drive.PK}`, {
+                ...drive,
+                carId: event.detail.data.values
+              });
+
+              getData();
+                const itemSliding = document.querySelector(`ion-item-sliding[key="${drive.PK}"]`) as HTMLIonItemSlidingElement;
+                if (itemSliding) {
+                  itemSliding.close();
+                }
+
+                const list = document.querySelector('ion-list');
+                if (list) {
+                  list.closeSlidingItems();
+                }
+          }}
+        ></IonAlert>
 
       </IonContent>
     </IonPage>

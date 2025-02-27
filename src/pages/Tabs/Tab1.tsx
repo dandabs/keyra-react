@@ -10,6 +10,7 @@ import { Motion } from '@capacitor/motion';
 import { formatCurrency, msToKmh, msToKmhLabel, msToM, msToMph, msToMphLabel, msToTimeLabel, mToKmLabel, mToMi, mToMiLabel } from '../../utils';
 import { apiAxiosClient } from '../../axios';
 import { Preferences } from '@capacitor/preferences';
+import currencies from '../../currencies';
 
 let accelHandler: PluginListenerHandle;
 
@@ -184,9 +185,9 @@ const Tab1: React.FC = () => {
             </div>
           </IonCard>
 
-          <h2>Default car</h2>
+          <h2>Drive preferences</h2>
 
-          <IonCard className="rural-sign-card" button id='open-car-actions' style={{ marginBottom: '0', marginTop: '10px' }}>
+          <IonCard className="rural-sign-card" button id='open-car-actions' style={{ marginBottom: '0', marginTop: '5px' }}>
             <div className="rural-sign-card--container-x">
               <div className="rural-sign-card--route">{
                 numberSystem === 'metric' ?
@@ -199,9 +200,10 @@ const Tab1: React.FC = () => {
             </div>
           </IonCard>
 
-          <IonCard className="fuel-card" button id='open-fuel'>
+          <IonCard className="fuel-card" button id='open-fuel' style={{ marginBottom: '0', marginTop: '10px' }}>
             <div className="rural-sign-card--container-x">
-            <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel ({fuelCurrency})</span>
+            <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel</span>
+            <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==fuelCurrency)?.format.replace('%','')}</span>
               <div className="fuel-card--price" style={{ marginRight: '10px' }}>{fuelPrice}</div>
               <span>&rsaquo;</span>
             </div>
