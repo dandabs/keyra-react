@@ -5,6 +5,7 @@ import { v4 } from "uuid";
 import { haversine } from "./utils";
 import { apiAxiosClient } from "./axios";
 import { Preferences } from "@capacitor/preferences";
+import { notify } from "./notificationUtils";
 
 // multipliers
 export const
@@ -157,25 +158,27 @@ export async function startDrive(): Promise<string> {
         );
         `, [id, id]);
 
+        notify(`Drive started`, `We've started tracking your drive. Have a safe journey!`);
+
     return id;
 }
 
 export async function pauseDrive() {
-    // send notification
+    notify(`Drive paused`, `Start moving again to resume, or open the app to manually end the drive`);
 }
 
 export async function resumeDrive() {
-    // send notification
+    notify(`Drive resumed`, `Woop woop! You're back on the road!`);
 }
 
 export async function endDrive(driveId: string, save = true) {
     if (save) {
         await queryDatabase(`UPDATE drive_points SET isLastPoint = 1 WHERE driveId = ?`, [driveId]);
-        // send notification
+        notify(`Drive ended`, `We've stopped your drive, and it's ready to be processed!`);
         syncDrivesToServer();
     } else {
         await queryDatabase(`DELETE FROM drive_points WHERE driveId = ?`, [driveId]);
-        // send notification
+        notify(`Drive ended`, `We've stopped your drive, but you were moving too fast for it to be saved`);
     }
 }
 

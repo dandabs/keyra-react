@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonTabs,
@@ -18,8 +18,22 @@ import DriveView from './Drive';
 import About from './About';
 import { FuelProvider } from '../../contexts/FuelContext';
 import { ProfileProvider } from '../../contexts/ProfileContext';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 const TabsLayout: React.FC = () => {
+
+  useEffect(() => {
+    LocalNotifications.checkPermissions().then((permissions) => {
+      if (permissions.display != 'granted') {
+        LocalNotifications.requestPermissions().then((permissions) => {
+          if (permissions.display != 'granted') {
+            console.log('Local notifications not granted');
+          }
+        });
+      }
+    });
+  }, []);
+
   return (
     <DriveProvider>
       <FuelProvider>

@@ -1,6 +1,8 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { Preferences } from '@capacitor/preferences';
 import { getFuelPriceByTag } from '../fuelStationSources';
+import { notify } from '../notificationUtils';
+import { formatCurrency } from '../utils';
 
 interface FuelContextProps {
     fuelPrice: number;
@@ -52,7 +54,11 @@ const FuelProvider = ({ children }: FuelProviderProps) => {
         const fuelSyncStation = await Preferences.get({ key: 'fuelSyncStation' });
         if (fuelSyncStation.value) {
             setFuelSyncStation(fuelSyncStation.value);
-            setFuelPrice(await getFuelPriceByTag(fuelSyncStation.value));
+            const newFuelPrice = await getFuelPriceByTag(fuelSyncStation.value);
+            if (fuelPrice.value && newFuelPrice < parseFloat(fuelPrice.value)) {
+                notify(`Fuel price changed`, `The fuel price at your synced station has changed from ${formatCurrency(parseFloat(fuelPrice.value), fuelCurrency.value || 'ISK')} to ${formatCurrency(newFuelPrice, fuelCurrency.value || 'ISK')}`);
+            }
+            setFuelPrice(newFuelPrice);
         }
 
         isCalledRef.current = false;
