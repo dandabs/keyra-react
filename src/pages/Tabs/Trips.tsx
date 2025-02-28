@@ -8,21 +8,16 @@ import { useHistory } from 'react-router';
 import { useProfile } from '../../contexts/ProfileContext';
 
 const Trips: React.FC = () => {
-  const [drives, setDrives] = useState([]);
   const history = useHistory();
 
-  const { numberSystem, setNumberSystem, cars } = useProfile()!;
+  const { numberSystem, setNumberSystem, cars, drives, refreshDrives } = useProfile()!;
 
   const [changeCarAlertId, setChangeCarAlertId] = useState<null | string>(null);
 
   async function getData(event?: CustomEvent<RefresherEventDetail>) {
-    const driveRes = await apiAxiosClient.get('/drives');
-    setDrives(driveRes.data);
-
+    await refreshDrives();
     if (event) event.detail.complete();
   }
-
-  useEffect(() => { getData(); }, []);
   
   return (
     <IonPage>
@@ -43,13 +38,13 @@ const Trips: React.FC = () => {
         
         <div className="content-top">
           {
-            drives.length === 0 && (
+            !drives || drives?.length === 0 && (
                 <IonText color="medium"><p>You don&#39;t have any drives yet.</p></IonText>
             )
           }
           <IonList lines="none">
             {
-              drives.sort((a: any, b: any) => b.startTime - a.startTime).map((drive: any) => (
+              drives && drives.sort((a: any, b: any) => b.startTime - a.startTime).map((drive: any) => (
                 <IonItemSliding key={drive.PK}>
                   <IonItem lines="none" color="light" button onClick={() => { history.push(`/tabs/drive/${drive.PK}`) }}>
                     <div className="drive-inner-container">
@@ -118,7 +113,7 @@ const Trips: React.FC = () => {
               console.log(event.detail);
               if (!event.detail.data) return;
               if (!event.detail.data.values) return;
-              const drive: any = drives.find((drive: any) => drive.PK === changeCarAlertId);
+              const drive: any = drives?.find((drive: any) => drive.PK === changeCarAlertId);
               if (!drive) return;
 
               await apiAxiosClient.put(`/drives/${drive.PK}`, {
