@@ -11,7 +11,7 @@ import { useFuel } from '../contexts/FuelContext';
 import { useProfile } from '../contexts/ProfileContext';
 
 const ProfileContainer: React.FC = () => {
-    const { cars, attributes, updateAttributes } = useProfile()!;
+    const { cars, attributes, updateAttributes, drives } = useProfile()!;
 
     const [friendsLoading, setFriendsLoading] = useState(false);
     const [friends, setFriends] = React.useState([]);
@@ -239,7 +239,7 @@ const ProfileContainer: React.FC = () => {
             </IonSelect>
           </IonItem>
           <IonItem>
-            <IonSelect label="Currency" placeholder="Select a currency" value={fuelCurrency} onIonChange={(e) => setFuelCurrency(e.detail.value)}>
+            <IonSelect disabled={(drives?.length || 0) > 0} label="Currency" placeholder="Select a currency" value={fuelCurrency} onIonChange={(e) => setFuelCurrency(e.detail.value)}>
               {
                 currencies.map((currency) => (
                   <IonSelectOption value={currency.code} key={currency.code}>{currency.code}</IonSelectOption>
@@ -248,6 +248,11 @@ const ProfileContainer: React.FC = () => {
             </IonSelect>
           </IonItem>
         </IonList>
+        {
+          (drives?.length || 0) > 0 && (
+            <IonText color="danger"><p>You cannot change the currency while you have drives saved.</p></IonText>
+          )
+        }
       </div>
     </IonModal>
 

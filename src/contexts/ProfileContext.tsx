@@ -13,6 +13,8 @@ interface ProfileContextProps {
     setDefaultCar: (id: string) => void;
     attributes: any | null;
     updateAttributes: (attributes: { Name: string, Value: string}[]) => void;
+    drives: any[] | null;
+    refreshDrives: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextProps | null>(null);
@@ -27,6 +29,7 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
     const [cars, setCars] = useState<any[] | null>(null);
     const [defaultCar, setDefaultCarState] = useState<string | null>(null);
     const [attributes, setAttributes] = useState<any | null>(null);
+    const [drives, setDrives] = useState<any[] | null>(null);
 
     const isCalledRef = React.useRef(false);
 
@@ -66,6 +69,11 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
                 }
             }
         }
+    }
+
+    async function refreshDrives() {
+        const driveRes = await apiAxiosClient.get('/drives');
+        setDrives(driveRes.data);
     }
 
     async function refreshAttributes() {
@@ -121,7 +129,7 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
         const defaultCar = await Preferences.get({ key: 'defaultCar' });
         if (defaultCar.value) setDefaultCarState(defaultCar.value);
 
-        await Promise.all([refreshYearStats(), refreshCars(), refreshAttributes()]);
+        await Promise.all([refreshYearStats(), refreshCars(), refreshAttributes(), refreshDrives()]);
 
         isCalledRef.current = false;
     }
@@ -134,7 +142,7 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
     }, []);
 
     return (
-        <ProfileContext.Provider value={{ numberSystem, setNumberSystem, yearStats, cars, refreshCars, defaultCar, setDefaultCar, attributes, updateAttributes }}>
+        <ProfileContext.Provider value={{ numberSystem, setNumberSystem, yearStats, cars, refreshCars, defaultCar, setDefaultCar, attributes, updateAttributes, drives, refreshDrives }}>
             { children }
         </ProfileContext.Provider>
     )

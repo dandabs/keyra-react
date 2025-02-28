@@ -3,6 +3,7 @@ import { Preferences } from '@capacitor/preferences';
 import { getFuelPriceByTag } from '../fuelStationSources';
 import { notify } from '../notificationUtils';
 import { formatCurrency } from '../utils';
+import { apiAxiosClient } from '../axios';
 
 interface FuelContextProps {
     fuelPrice: number;
@@ -47,6 +48,12 @@ const FuelProvider = ({ children }: FuelProviderProps) => {
     async function getData() {
         const fuelCurrency = await Preferences.get({ key: 'fuelCurrency' });
         if (fuelCurrency.value) setFuelCurrencyState(fuelCurrency.value);
+        if (!fuelCurrency.value) {
+            const drives = await apiAxiosClient.get('/drives');
+            if (drives.data.length > 0) {
+                setFuelCurrency(drives.data[0].fuel.currency);
+            }
+        }
 
         const fuelPrice = await Preferences.get({ key: 'fuelPrice' });
         if (fuelPrice.value) setFuelPriceState(parseFloat(fuelPrice.value));
