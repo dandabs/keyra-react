@@ -66,6 +66,8 @@ const Tab1: React.FC = () => {
     setDrive(currentDrive);
   }, [currentDrive]);
 
+  const lastPointReal = lastPoint || currentDrive && currentDrive.points[currentDrive.points.length - 1];
+
   return (
     <IonPage>
       <IonHeader>
@@ -82,10 +84,10 @@ const Tab1: React.FC = () => {
                 <div className="speed-sign">
                   <span>{
                     numberSystem == 'metric' ?
-                    Math.round(msToKmh(lastPoint?.speed || currentDrive?.points[0].speed < 0 ? 0 : currentDrive?.points[0].speed || 0))
+                    Math.round(msToKmh(lastPointReal?.speed || 0))
                     :
-                    Math.round(msToMph(lastPoint?.speed || currentDrive?.points[0].speed < 0 ? 0 : currentDrive?.points[0].speed || 0))
-                    }</span>
+                    Math.round(msToMph(lastPointReal?.speed || 0))
+                  }</span>
                 </div>
               </div>
             </IonButtons>
@@ -115,15 +117,15 @@ const Tab1: React.FC = () => {
                 <IonCardTitle>{
                   drive.isPaused ?
                   `Drive is paused` :
-                  `Driving for ${Math.round(mToMi(drive.distanceElapsed))}mi`
+                  `Driving for ${ numberSystem == 'metric' ? mToKmLabel(drive.distanceElapsed, 1) : mToMiLabel(drive.distanceElapsed, 1) }`
                   }</IonCardTitle>
                 <div>
                   <div className="speed-sign">
-                  <span>{
+                    <span>{
                     numberSystem == 'metric' ?
-                    Math.round(msToKmh(lastPoint?.speed || currentDrive?.points[0].speed < 0 ? 0 : currentDrive?.points[0].speed || 0))
+                    Math.round(msToKmh(lastPointReal?.speed || 0))
                     :
-                    Math.round(msToMph(lastPoint?.speed || currentDrive?.points[0].speed < 0 ? 0 : currentDrive?.points[0].speed || 0))
+                    Math.round(msToMph(lastPointReal?.speed || 0))
                     }</span>
                   </div>
                 </div>
@@ -136,10 +138,11 @@ const Tab1: React.FC = () => {
               <IonButton
                 color="dark"
                 fill="clear"
-                disabled={lastPoint ? (lastPoint?.speed || drive.points[0].speed < 0 ? 0 : drive.points[0].speed || 0) > MINIMUM_DRIVE_PAUSE_SPEED : true}
+                disabled={lastPointReal ? lastPointReal?.speed > MINIMUM_DRIVE_PAUSE_SPEED : true}
                 onClick={async () => {
                   present();
                   await endDrive(drive.id);
+                  setDrive(null);
                   await syncDrivesToServer();
                   dismiss();
                 }}

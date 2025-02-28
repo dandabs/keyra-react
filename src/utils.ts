@@ -41,8 +41,8 @@ export const msToMph = (ms: number) => ms * 2.23694;
 export const msToM = (ms: number) => ms / 1000 / 60;
 export const msToH = (ms: number) => ms / 3600000;
 
-export const mToKmLabel = (m: number) => `${mToKm(m).toFixed(0)}km`;
-export const mToMiLabel = (m: number) => `${mToMi(m).toFixed(0)}mi`;
+export const mToKmLabel = (m: number, p = 0) => `${mToKm(m).toFixed(p)}km`;
+export const mToMiLabel = (m: number, p = 0) => `${mToMi(m).toFixed(p)}mi`;
 
 export const msToKmhLabel = (ms: number) => `${msToKmh(ms).toFixed(0)}km/h`;
 export const msToMphLabel = (ms: number) => `${msToMph(ms).toFixed(0)}mph`;

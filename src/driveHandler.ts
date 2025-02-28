@@ -12,8 +12,8 @@ export const
 S_TO_MS = 1000;
 
 export const
-MINIMUM_DRIVE_START_SPEED = 15, // a drive will start if motion above this is detected
-MINIMUM_DRIVE_PAUSE_SPEED = 15, // a drive will pause if motion below this is detected for MINIMUM_DRIVE_PAUSE_TIME ms
+MINIMUM_DRIVE_START_SPEED = 20 * 0.44704, // a drive will start if motion above this is detected
+MINIMUM_DRIVE_PAUSE_SPEED = 10 * 0.44704, // a drive will pause if motion below this is detected for MINIMUM_DRIVE_PAUSE_TIME ms
 MINIMUM_DRIVE_PAUSE_TIME = 60 * S_TO_MS,
 MINIMUM_DRIVE_STOP_TIME = 300 * S_TO_MS, // a drive will stop if no motion above MINIMUM_DRIVE_START_SPEED is detected for this time in ms
 MAXIMUM_DRIVE_SPEED = 100, // the upper limit for a drive to be valid - it will cancel and not save if any point above this
