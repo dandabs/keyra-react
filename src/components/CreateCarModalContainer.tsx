@@ -16,7 +16,7 @@ const CreateCarModalContainer: React.FC = () => {
 
     const [isDataFromApi, setIsDataFromApi] = useState(true);
 
-    const { setDefaultCar } = useProfile()!;
+    const { setDefaultCar, refreshCars } = useProfile()!;
 
     const [make, setMake] = useState('');
     const [model, setModel] = useState('');
@@ -71,6 +71,7 @@ const CreateCarModalContainer: React.FC = () => {
                 year
             });
             setDefaultCar(registration);
+            refreshCars();
             history.push(`/tabs/profile/cars/${registration}`);
         } catch (e) {
             setRegistrationError(e as any);

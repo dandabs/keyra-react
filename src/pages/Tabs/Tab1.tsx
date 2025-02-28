@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { IonActionSheet, IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader, IonNavLink, IonPage, IonText, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter } from '@ionic/react';
+import { IonActionSheet, IonAlert, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader, IonNavLink, IonPage, IonSkeletonText, IonText, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter } from '@ionic/react';
 import './Dashboard.css';
 import { useDrive } from '../../contexts/DriveContext';
 import { endDrive, getCurrentDrive, MINIMUM_DRIVE_PAUSE_SPEED, syncDrivesToServer } from '../../driveHandler';
@@ -156,27 +156,52 @@ const Tab1: React.FC = () => {
 
                 <div className="urban-sign-card--place">
                   <span>Distance</span>
-                  <span>{numberSystem === 'metric' ? mToKmLabel(yearStats?.totalDistance) : mToMiLabel(yearStats?.totalDistance) }</span>
+                  {
+                    yearStats ?
+                    <span>{numberSystem === 'metric' ? mToKmLabel(yearStats?.totalDistance) : mToMiLabel(yearStats?.totalDistance) }</span>
+                    :
+                    <IonSkeletonText animated style={{ width: '5rem' }} />
+                  }
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Time</span>
-                  <span>{msToTimeLabel(yearStats?.totalDuration)}</span>
+                  {
+                    yearStats ?
+                    <span>{msToTimeLabel(yearStats?.totalDuration)}</span>
+                    :
+                    <IonSkeletonText animated style={{ width: '5rem' }} />
+                  }
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Cost</span>
-                  <span>{formatCurrency(yearStats?.totalCost || 0, fuelCurrency)}</span>
+                  {
+                    yearStats ?
+                    <span>{formatCurrency(yearStats?.totalCost, fuelCurrency)}</span>
+                    :
+                    <IonSkeletonText animated style={{ width: '5rem' }} />
+                  }
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Speed (Ø)</span>
-                  <span>{numberSystem === 'metric' ? msToKmhLabel(yearStats?.averageSpeed) : msToMphLabel(yearStats?.averageSpeed)}</span>
+                  {
+                    yearStats ?
+                    <span>{numberSystem === 'metric' ? msToKmhLabel(yearStats?.averageSpeed) : msToMphLabel(yearStats?.averageSpeed)}</span>
+                    :
+                    <IonSkeletonText animated style={{ width: '5rem' }} />
+                  }
                 </div>
 
                 <div className="urban-sign-card--place">
                   <span>Speed (&#8811;)</span>
-                  <span>{numberSystem === 'metric' ? msToKmhLabel(yearStats?.topSpeed) : msToMphLabel(yearStats?.topSpeed)}</span>
+                  {
+                    yearStats ?
+                    <span>{numberSystem === 'metric' ? msToKmhLabel(yearStats?.topSpeed) : msToMphLabel(yearStats?.topSpeed)}</span>
+                    :
+                    <IonSkeletonText animated style={{ width: '5rem' }} />
+                  }
                 </div>
 
               </div>

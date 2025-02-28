@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IonAlert, IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList, IonPage, IonRefresher, IonRefresherContent, IonTitle, IonToolbar, RefresherEventDetail } from '@ionic/react';
+import { IonAlert, IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonLabel, IonList, IonPage, IonRefresher, IonRefresherContent, IonText, IonTitle, IonToolbar, RefresherEventDetail } from '@ionic/react';
 import './Trips.css';
 import { apiAxiosClient } from '../../axios';
 import { carSharp, locationSharp, trashBin } from 'ionicons/icons';
@@ -42,6 +42,11 @@ const Trips: React.FC = () => {
         </IonRefresher>
         
         <div className="content-top">
+          {
+            drives.length === 0 && (
+                <IonText color="medium"><p>You don&#39;t have any drives yet.</p></IonText>
+            )
+          }
           <IonList lines="none">
             {
               drives.sort((a: any, b: any) => b.startTime - a.startTime).map((drive: any) => (
