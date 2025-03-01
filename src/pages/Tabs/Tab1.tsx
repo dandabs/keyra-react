@@ -27,9 +27,7 @@ const Tab1: React.FC = () => {
 
   const [present, dismiss] = useIonLoading();
 
-  const { numberSystem, setNumberSystem, yearStats, cars, refreshCars, attributes } = useProfile()!;
-  
-  const [defaultCar, setDefaultCar] = React.useState<any>(null);
+  const { numberSystem, setNumberSystem, yearStats, cars, refreshCars, attributes, defaultCar, setDefaultCar } = useProfile()!;
 
   const changeDefaultCarAlertRef = React.useRef<HTMLIonAlertElement>(null);
   const changeEfficiencyAlertRef = React.useRef<HTMLIonAlertElement>(null);
@@ -46,7 +44,6 @@ const Tab1: React.FC = () => {
   async function getData() {
     const current = await getCurrentDrive()
     if (!currentDrive) setDrive(current);
-    setDefaultCar((await Preferences.get({ key: 'defaultCar' })).value);
 
     accelHandler = await Motion.addListener('accel', event => {
       console.log(event);

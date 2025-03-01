@@ -3,6 +3,7 @@ import { Preferences } from '@capacitor/preferences';
 import { apiAxiosClient } from '../axios';
 import userPool from '../cognitoConfig';
 import SetUsername from '../pages/Auth/SetUsername';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 interface ProfileContextProps {
     numberSystem: string;
@@ -85,21 +86,10 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
     async function updateAttributes(attributes: { Name: string, Value: string}[]) {
         const cognitoUser = userPool.getCurrentUser();
         if (!cognitoUser) throw Error();
-  
-        cognitoUser.getSession((err: Error) => {
-          if (err) {
-            Promise.reject(err.message);
-          } else {
-              cognitoUser.updateAttributes(attributes, (err) => {
-                  if (err) {
-                    Promise.reject(err.message);
-                  } else {
-                    refreshAttributes();
-                    Promise.resolve();
-                  }
-                });
-          }
-        });
+
+        await apiAxiosClient.put('/user', { attributes });
+
+        await refreshAttributes();
     }
 
     async function getData() {
@@ -121,10 +111,15 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
         }
     }, []);
 
+    if (!attributes) return null;
+
+    if (attributes)
+        SplashScreen.hide();
+
     return (
         <ProfileContext.Provider value={{ numberSystem, setNumberSystem, yearStats, cars, refreshCars, defaultCar, setDefaultCar, attributes, updateAttributes, drives, refreshDrives }}>
             {
-                attributes && !attributes.preferred_username ?
+                !attributes.preferred_username ?
                 <SetUsername />
                 :
                 children

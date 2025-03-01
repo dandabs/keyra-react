@@ -3,11 +3,14 @@ import { IonPage, IonContent, IonButton, IonInput, IonImg } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import userPool from '../../cognitoConfig';
 import './Auth.css';
+import { useProfile } from '../../contexts/ProfileContext';
 
 const SetUsername: React.FC = () => {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const history = useHistory();
+
+  const { updateAttributes } = useProfile()!;
 
   const handleSubmit = async () => {
     if (username.trim() === '') {
@@ -19,22 +22,11 @@ const SetUsername: React.FC = () => {
       const cognitoUser = userPool.getCurrentUser();
       if (!cognitoUser) throw Error();
 
-      cognitoUser.getSession((err: Error) => {
-        if (err) {
-            setError('Failed to get session: ' + err);
-        } else {
-            cognitoUser.updateAttributes([
-                { Name: 'preferred_username', Value: username },
-              ], (err) => {
-                if (err) {
-                  setError(err.message);
-                } else {
-                  setError('')
-                  return history.push('/tabs');
-                }
-              });
-        }
-      });
+      await updateAttributes([
+        { Name: 'preferred_username', Value: username },
+      ]);
+      setError('')
+      return history.push('/tabs');
       
     } catch (err) {
       setError('An error occurred: ' + err);

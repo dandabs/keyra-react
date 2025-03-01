@@ -4,4 +4,7 @@
     <string name="title_activity_main">Keyra</string>
     <string name="package_name">is.dsk.keyra</string>
     <string name="custom_url_scheme">is.dsk.keyra</string>
+    <string name="plugin_bgloc_account_name">@string/app_name</string>
+    <string name="plugin_bgloc_account_type">is.dsk.keyra.account</string>
+    <string name="plugin_bgloc_content_authority">@string/package_name</string>
 </resources>

@@ -1,7 +1,7 @@
 ion-card.rural-sign-card {
-    --background: var(--ion-color-warning);
-    --color: var(--ion-color-black);
-    border: 3px solid black;
+    --background: var(--ion-color-rural-bg);
+    --color: var(--ion-color-rural-text);
+    border: 3px solid var(--ion-color-rural-border);
 }
 
 div.rural-sign-card--container-x {
@@ -57,9 +57,9 @@ div.fuel-card--price {
 }
 
 ion-card.urban-sign-card {
-    --background: var(--ion-color-primary);
-    --color: white;
-    border: 3px solid white;
+    --background: var(--ion-color-urban-bg);
+    --color: var(--ion-color-urban-text);
+    border: 3px solid var(--ion-color-urban-border);
     font-size: 1.5rem;
 }
 
@@ -72,13 +72,13 @@ div.urban-sign-card--container {
 }
 
 div.urban-sign-card--route {
-    background-color: var(--ion-color-warning);
-    color: black;
+    background-color: var(--ion-color-rural-detail-bg);
+    color: var(--ion-color-rural-detail-text);
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0 20px;
-    border: 3px solid black;
+    border: 3px solid var(--ion-color-rural-detail-border);
     
     font-weight: bold;
     border-radius: 5px;
@@ -100,14 +100,14 @@ div.urban-sign-card--place {
 }
 
 div.speed-sign {
-    background-color: var(--ion-color-warning);
+    background-color: var(--ion-color-speed-bg);
 
     display: flex;
     justify-content: center;
     align-items: center;
 
     border-radius: 100rem;
-    border: 5px solid var(--ion-color-danger);
+    border: 5px solid var(--ion-color-speed-border);
     padding: 5px;
     /* padding-left: 6px; */
 
@@ -116,6 +116,8 @@ div.speed-sign {
 
     font-size: 2em;
     font-weight: bold;
+
+    color: var(--ion-color-speed-text);
 }
 
 ion-card-content.no-padding {

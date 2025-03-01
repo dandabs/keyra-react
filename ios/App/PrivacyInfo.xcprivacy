@@ -3,18 +3,18 @@
 <plist version="1.0">
   <dict>
     <key>NSPrivacyTracking</key>
-    <false />
+    <false/>
     <key>NSPrivacyTrackingDomains</key>
-    <array />
+    <array/>
     <key>NSPrivacyCollectedDataTypes</key>
     <array>
       <dict>
         <key>NSPrivacyCollectedDataType</key>
         <string>NSPrivacyCollectedDataTypeName</string>
         <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
+        <true/>
         <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
+        <false/>
         <key>NSPrivacyCollectedDataTypePurposes</key>
         <array>
           <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
@@ -24,9 +24,9 @@
         <key>NSPrivacyCollectedDataType</key>
         <string>NSPrivacyCollectedDataTypePhoneNumber</string>
         <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
+        <true/>
         <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
+        <false/>
         <key>NSPrivacyCollectedDataTypePurposes</key>
         <array>
           <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
@@ -36,9 +36,9 @@
         <key>NSPrivacyCollectedDataType</key>
         <string>NSPrivacyCollectedDataTypePreciseLocation</string>
         <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
+        <true/>
         <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
+        <false/>
         <key>NSPrivacyCollectedDataTypePurposes</key>
         <array>
           <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
@@ -48,9 +48,9 @@
         <key>NSPrivacyCollectedDataType</key>
         <string>NSPrivacyCollectedDataTypeUserID</string>
         <key>NSPrivacyCollectedDataTypeLinked</key>
-        <true />
+        <true/>
         <key>NSPrivacyCollectedDataTypeTracking</key>
-        <false />
+        <false/>
         <key>NSPrivacyCollectedDataTypePurposes</key>
         <array>
           <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
@@ -66,6 +66,12 @@
         <array>
           <string>CA92.1</string>
         </array>
+      </dict>
+      <dict>
+        <key>NSPrivacyAccessedAPIType</key>
+        <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+        <key>NSPrivacyAccessedAPITypeReasons</key>
+        <array/>
       </dict>
     </array>
   </dict>

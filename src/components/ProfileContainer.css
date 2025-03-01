@@ -29,24 +29,25 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    background-color: var(--ion-color-warning);
+    background-color: var(--ion-color-rural-bg);
     padding: 5px 15px;
     border-radius: 3px;
-    border: 2px solid black;
+    border: 2px solid var(--ion-color-rural-border);
     gap: 10px;
     font-weight: bold;
     font-size: 1.2rem;
     position: relative;
-    color: black;
+    color: var(--ion-color-rural-text);
 }
 
 .sign-outline > .sign-route {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: white;
+    background-color: var(--ion-color-rural-detail-bg);
     padding: 1px 3px;
-    border: 2px solid black;
+    border: 2px solid var(--ion-color-rural-detail-border);
+    color: var(--ion-color-rural-detail-text);
 }
 .sign-route > span {
     letter-spacing: 2px;

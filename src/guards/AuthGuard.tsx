@@ -17,8 +17,7 @@ const AuthGuard: React.FC<any> = ({ component: Component, ...rest }) => {
     SplashScreen.hide();
     return <Route {...rest} render={() => <Redirect to="/auth" />} />;
   }
-
-  SplashScreen.hide();
+  
   return <Route {...rest} render={(props) => <Component {...props} />} />;
 };
 

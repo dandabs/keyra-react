@@ -27,6 +27,29 @@ http://ionicframework.com/docs/theming/ */
   --ion-color-tertiary-shade: #4854e0;
   --ion-color-tertiary-tint: #6370ff;
 
+  /** urban **/
+  --ion-color-urban-border: #ffffff;
+  --ion-color-urban-bg: #2162ad;
+  --ion-color-urban-text: #ffffff;
+
+  --ion-color-urban-detail-border: #000000;
+  --ion-color-urban-detail-bg: #f8c800;
+  --ion-color-urban-detail-text: #000000;
+
+  /** rural **/
+  --ion-color-rural-border: #000000;
+  --ion-color-rural-bg: #f8c800;
+  --ion-color-rural-text: #000000;
+
+  --ion-color-rural-detail-border: #000000;
+  --ion-color-rural-detail-bg: #ffffff;
+  --ion-color-rural-detail-text: #000000;
+
+  /** speed **/
+  --ion-color-speed-border: #d20400;
+  --ion-color-speed-bg: #f8c800;
+  --ion-color-speed-text: #000000;
+
   /** success **/
   --ion-color-success: #2dd36f;
   --ion-color-success-rgb: 45, 211, 111;

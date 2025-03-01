@@ -37,7 +37,7 @@ const endIcon = new L.DivIcon({
 
 const speedIcon = (speed: number) => new L.DivIcon({
     className: "custom-icon",
-    html: `<div style="background-color: var(--ion-color-warning); color: black; border: 4px solid var(--ion-color-danger); border-radius: 50%; width: 35px; height: 35px; text-align: center; display: flex; justify-content: center; align-items: center; font-weight: bold;">${Math.round(speed)}</div>`,
+    html: `<div style="background-color: var(--ion-color-speed-bg); color: black; border: 4px solid var(--ion-color-speed-border); border-radius: 50%; width: 35px; height: 35px; text-align: center; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 15px;">${Math.round(speed)}</div>`,
     iconSize: [30, 30],
 });
 

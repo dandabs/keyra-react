@@ -1,0 +1,25 @@
+{
+	"appId": "is.dsk.keyra",
+	"appName": "Keyra",
+	"webDir": "build",
+	"plugins": {
+		"SplashScreen": {
+			"launchAutoHide": false,
+			"showSpinner": true
+		}
+	},
+	"server": {
+		"hostname": "localhost"
+	},
+	"packageClassList": [
+		"ContactsPlugin",
+		"HttpPlugin",
+		"CapacitorSQLitePlugin",
+		"CAPCameraPlugin",
+		"LocalNotificationsPlugin",
+		"PreferencesPlugin",
+		"SharePlugin",
+		"SplashScreenPlugin",
+		"CDVPlugin"
+	]
+}

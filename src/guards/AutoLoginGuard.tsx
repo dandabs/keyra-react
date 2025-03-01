@@ -13,7 +13,7 @@ const AutoLoginGuard: React.FC<any> = ({ component: Component, ...rest }) => {
   }, []);
 
   if (isAuthenticated === null) return null;
-
+  
   SplashScreen.hide();
   return <Route {...rest} render={(props) => (!isAuthenticated ? <Component {...props} /> : <Redirect to="/tabs" />)} />;
 };

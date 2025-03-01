@@ -8,13 +8,16 @@ export const initializeLocationHandler = async () => {
     await BackgroundGeolocation.configure({
         locationProvider: BackgroundGeolocation.DISTANCE_FILTER_PROVIDER,
         desiredAccuracy: BackgroundGeolocation.HIGH_ACCURACY,
-        stationaryRadius: 20,
+        activityType: 'AutomotiveNavigation',
+        stationaryRadius: 10,
         distanceFilter: 3,
         notificationTitle: 'Keyra drive tracking',
         notificationText: 'enabled',
-        interval: 5000,
+        interval: 500,
         stopOnTerminate: false,
-        debug: false
+        startForeground: true,
+        debug: false,
+        startOnBoot: true,
     });
 
     console.log(`Location handler initialised`);

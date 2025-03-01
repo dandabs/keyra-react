@@ -8,6 +8,9 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchAutoHide: false,
       showSpinner: true,
+    },
+    CapacitorHttp: {
+      enabled: true
     }
   },
   server: {

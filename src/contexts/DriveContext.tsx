@@ -58,6 +58,27 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
             })
         });
 
+        BackgroundGeolocation.headlessTask(function(event) {
+            if (event.name === 'location' ||
+              event.name === 'stationary') {
+                console.log(event.params);
+            }
+        
+            return 'Processing event: ' + event.name;
+        });
+
+        BackgroundGeolocation.on('error', function(error) {
+            console.log('[ERROR] BackgroundGeolocation error:', error);
+        });
+
+        BackgroundGeolocation.on('start', function() {
+            console.log('[INFO] BackgroundGeolocation service has been started');
+        });
+
+        BackgroundGeolocation.on('stop', function() {
+            console.log('[INFO] BackgroundGeolocation service has been stopped');
+        });
+
         BackgroundGeolocation.on('authorization', function(status) {
             console.log('[INFO] BackgroundGeolocation authorization status: ' + status);
             if (status !== BackgroundGeolocation.AUTHORIZED) {
