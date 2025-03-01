@@ -19,16 +19,37 @@ MINIMUM_DRIVE_STOP_TIME = 300 * S_TO_MS, // a drive will stop if no motion above
 MAXIMUM_DRIVE_SPEED = 100, // the upper limit for a drive to be valid - it will cancel and not save if any point above this
 MAXIMUM_STOPPED_SPEED = 1; // the upper limit for a drive to be considered stopped
 
+let lastPoint: Location | null = null;
+
 export async function handleLocationUpdate(
     location: Location,
     setLastPoint: React.Dispatch<React.SetStateAction<Location | null>>,
     setCurrentDrive: React.Dispatch<React.SetStateAction<any | null>>
 ) {
-    console.log(location);
     setLastPoint(location);
 
     const currentDrive = await getCurrentDrive();
     setCurrentDrive(currentDrive);
+
+    console.log('last point', lastPoint, 'current point', location);
+
+    if (location.speed < 0 && lastPoint) {
+        // provider is not able to provide speed, or an error occurred getting speed from the gps provider
+        const timeSinceLastPointInMs = location.time - lastPoint.time;
+        console.log('time since last point', timeSinceLastPointInMs);
+
+        const distanceSinceLastPoint = haversine(lastPoint, location);
+        console.log('distance since last point', distanceSinceLastPoint);
+
+        const speedMetersPerSecond = distanceSinceLastPoint / (timeSinceLastPointInMs / S_TO_MS);
+        console.log('speed in metres per second', speedMetersPerSecond);
+
+        if (speedMetersPerSecond < MAXIMUM_DRIVE_SPEED) location.speed = speedMetersPerSecond;
+    }
+
+    lastPoint = location;
+
+    if (lastPoint) if (haversine(lastPoint, location) > 100) return;
 
     if (!currentDrive) {
         console.log("No current drive, checking if we should start one");
@@ -42,6 +63,8 @@ export async function handleLocationUpdate(
         await saveDrivePoint(await startDrive(), location)
         return;
     }
+
+    console.log(location);
 
     if (location.speed > MAXIMUM_DRIVE_SPEED) {
         console.log("Speed above maximum drive speed, ending drive without saving");
@@ -78,6 +101,11 @@ export async function handleLocationUpdate(
     if (MINIMUM_DRIVE_PAUSE_TIME < currentDrive.timeSinceLastPointAboveMinimumDrivePauseSpeed) {
         console.log("Drive paused for too long, pausing drive");
         pauseDrive();
+        return;
+    }
+
+    if (location.speed < MINIMUM_DRIVE_PAUSE_SPEED) {
+        console.log("Speed below minimum drive pause speed, not saving");
         return;
     }
 
@@ -189,7 +217,9 @@ export async function syncDrivesToServer() {
     const fuelCurrency = (await Preferences.get({ key: "fuelCurrency" })).value;
     const fuelPrice = (await Preferences.get({ key: "fuelPrice" })).value;
     if (!defaultCar || !fuelCurrency || !fuelPrice) {
-        console.log("Missing preferences, skipping sync.");
+        if (!defaultCar) console.error("No default car set");
+        if (!fuelCurrency) console.error("No fuel currency set");
+        if (!fuelPrice) console.error("No fuel price set");
         return;
     }
     

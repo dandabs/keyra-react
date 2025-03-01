@@ -1,3 +1,4 @@
+import parsePhoneNumberFromString from "libphonenumber-js";
 import currencies from "./currencies";
 
 export const haversine = (p1: any, p2: any) => {
@@ -52,4 +53,17 @@ export const msToTimeLabel = (ms: number) => {
     const minutes = Math.floor((ms % 3600000) / 60000);
     if (hours === 0) return `${minutes}m`;
     return `${hours}h${minutes}m`;
+}
+
+export function guessCountryAndFormat(number: string) {
+    for (const country of ['GB', 'IS']) {
+        const phoneNumber = parsePhoneNumberFromString(number, country as any);
+        if (phoneNumber && phoneNumber.isPossible() && phoneNumber.isValid()) {
+            return {
+                e164: phoneNumber.formatInternational(),
+                country: phoneNumber.country
+            };
+        }
+    }
+    return null;
 }

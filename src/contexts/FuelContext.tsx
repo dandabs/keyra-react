@@ -31,7 +31,7 @@ const FuelProvider = ({ children }: FuelProviderProps) => {
         await Preferences.set({ key: 'fuelCurrency', value: currency });
         setFuelCurrencyState(currency);
 
-        await Preferences.remove({ key: 'fuelCurrency' });
+        await Preferences.remove({ key: 'fuelSyncStation' });
         setFuelSyncStation(null);
     }
 

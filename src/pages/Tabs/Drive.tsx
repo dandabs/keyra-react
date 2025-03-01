@@ -1,13 +1,14 @@
-import React, { RefObject, useEffect, useState } from 'react';
-import { IonBackButton, IonButton, IonButtons, IonCard, IonContent, IonFooter, IonHeader, IonInput, IonItem, IonList, IonModal, IonPage, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter, useIonViewWillLeave } from '@ionic/react';
+import React, { useEffect, useState } from 'react';
+import { IonAvatar, IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonContent, IonHeader, IonItem, IonItemDivider, IonItemGroup, IonLabel, IonList, IonListHeader, IonModal, IonNote, IonPage, IonTitle, IonToolbar, useIonLoading, useIonViewWillEnter, useIonViewWillLeave } from '@ionic/react';
 import { useHistory, useParams } from 'react-router';
 import { apiAxiosClient } from '../../axios';
-import { MapContainer, TileLayer, Polyline, MapContainerProps, useMap, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Polyline, useMap, Marker, Popup } from "react-leaflet";
 import { LatLngExpression, Map } from 'leaflet';
 import L from "leaflet";
-import { Preferences } from '@capacitor/preferences';
-import { formatCurrency, msToKmh, msToKmhLabel, msToMph, msToMphLabel, mToKm, mToMi } from '../../utils';
+import { formatCurrency, guessCountryAndFormat, msToKmh, msToKmhLabel, msToMph, msToMphLabel, mToKm, mToMi } from '../../utils';
 import { useProfile } from '../../contexts/ProfileContext';
+import { Contacts } from '@capacitor-community/contacts';
+import { Share } from '@capacitor/share';
 
 const FitBounds = ({ points }: { points: { latitude: number; longitude: number }[] }) => {
     const map = useMap();
@@ -80,18 +81,31 @@ const DriveView: React.FC = () => {
     const history = useHistory();
     const [present, dismiss] = useIonLoading();
 
+    const [contacts, setContacts] = useState<any[]>([]);
+
     const { driveId } = useParams() as { driveId: string };
     const [drive, setDrive] = useState<any>();
 
     const [showModal, setShowModal] = useState(false);
 
+    const [passengers, setPassengers] = useState<any[]>([]);
+
     const { numberSystem, setNumberSystem } = useProfile()!;
 
     const mapRef = React.useRef<Map>(null);
 
+    const addPassengerContactsModal = React.useRef<HTMLIonModalElement>(null);
+
     async function getData() {
-        const response = await apiAxiosClient.get(`/drives/${driveId}`);
-        setDrive(response.data);
+        const driveResponse = await apiAxiosClient.get(`/drives/${driveId}`);
+        setDrive(driveResponse.data);
+
+        await refreshPassengers();
+    }
+
+    async function refreshPassengers() {
+        const passengersResponse = await apiAxiosClient.get(`/drives/${driveId}/passengers`);
+        setPassengers(passengersResponse.data);
     }
 
     useEffect(() => {
@@ -253,25 +267,134 @@ const DriveView: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '15px', textAlign: 'center' }}>
-                                <div >
-                                    
-                                    
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0' }}>
-                                    
-                                    
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '1 1 0' }}>
-                                    
-                                    
-                                </div>
-                            </div>
+                            <IonList>
+                                <IonListHeader>
+                                    <IonLabel>Passengers</IonLabel>
+                                    <IonButton onClick={async () => {
+
+                                        const permissionState = await Contacts.requestPermissions();
+                                        if (permissionState.contacts === 'granted') {
+                                            console.log('Permission granted!');
+
+                                            const { contacts } = await Contacts.getContacts({ projection: {
+                                                name: true,
+                                                phones: true
+                                            }});
+
+                                            setContacts(contacts);
+
+                                            addPassengerContactsModal.current?.present();
+                                        }
+
+                                    }}>Add</IonButton>
+                                </IonListHeader>
+                                {
+                                    passengers.map((passenger) => (
+                                        <>
+                                        {
+                                            passenger.status != 'PENDING_JOIN_PLATFORM' ?
+                                            <IonItem key={passenger.PK}>
+                                                    <IonAvatar slot="start">
+                                                        <img src={passenger.attributes.picture} />
+                                                    </IonAvatar>
+                                                <div>
+                                                    <IonLabel>{passenger.attributes.name || passenger.attributes.preferred_username}</IonLabel>
+                                                    { passenger.attributes.name && <IonNote>{passenger.attributes.preferred_username}</IonNote> }
+                                                </div>
+                                                { passenger.status == 'PENDING' && <IonNote slot="end">Pending</IonNote> }
+                                            </IonItem>
+                                            :
+                                            <IonItem key={passenger.PK}>
+                                                    <IonAvatar slot="start">
+                                                        <img src={`https://gravatar.com/avatar/default?f=y&d=mp`} />
+                                                    </IonAvatar>
+                                                <div>
+                                                    <IonLabel>{passenger.temporaryInvite.name}</IonLabel>
+                                                </div>
+                                                <IonNote slot="end">Pending</IonNote>
+                                            </IonItem>
+                                        }
+                                        </>
+                                    ))
+                                }
+                            </IonList>
 
                         </div>
                     </IonContent>
                     }
             </IonModal>
+
+            <IonModal ref={addPassengerContactsModal}>
+          <IonHeader>
+            <IonToolbar>
+              <IonButtons slot="start">
+                <IonButton onClick={() => addPassengerContactsModal.current?.dismiss()}>Cancel</IonButton>
+              </IonButtons>
+              <IonTitle>Add Passenger</IonTitle>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+
+            <IonList>
+                {
+                    [...Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)), '#'].map((letter, index) => {
+                        const filteredContacts = contacts.filter((c) => (letter != '#' ? c.name.display[0] == letter : !Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i)).includes(c.name.display[0])) && c.phones && c.phones.some((p: any) => guessCountryAndFormat(p.number)));
+                        return (
+                        <IonItemGroup key={index}>
+                            {
+                                filteredContacts.length > 0 &&
+                                <IonItemDivider>
+                                    <IonLabel>{letter}</IonLabel>
+                                </IonItemDivider>
+                            }
+                            {
+                                filteredContacts.map((c) => (
+                                    <>
+                                    {
+                                        c.phones.filter((p: any) => guessCountryAndFormat(p.number)).map((p: any) => (
+                                            <IonItem key={c.id}>
+                                                <div>
+                                                <IonLabel>{c.name.display}</IonLabel>
+                                                <IonNote>{guessCountryAndFormat(p.number)?.e164}</IonNote>
+                                                </div>
+                                                <IonButton slot="end" onClick={async () => {
+                                                    try {
+                                                    await apiAxiosClient.post(`/drives/${driveId}/passengers`, {
+                                                        contactName: c.name.display,
+                                                        phone: guessCountryAndFormat(p.number)?.e164
+                                                    });
+                                                    await refreshPassengers();
+                                                    } catch (e) {
+                                                    console.log(e);
+                                                    }
+
+                                                    try {
+                                                        await Share.share({
+                                                            title: 'Join my drive',
+                                                            text: `Join my drive from ${drive.from} to ${drive.to} on ${new Date(drive.startTime).toLocaleDateString()}`,
+                                                            url: `https://getkeyra.com/i?d=${drive.PK}`,
+                                                            dialogTitle: 'Share your drive'
+                                                        });
+                                                        addPassengerContactsModal.current?.dismiss();
+                                                    } catch (e) {
+                                                        console.log(e);
+                                                        addPassengerContactsModal.current?.dismiss();
+                                                    }
+
+                                                }}>Add</IonButton>
+                                            </IonItem>
+                                        ))
+                                    }
+                                    </>
+                                ))
+                            }
+                        </IonItemGroup>
+                    )})
+                }
+            </IonList>
+          </IonContent>
+        </IonModal>
+
         </IonPage>
     );
 };

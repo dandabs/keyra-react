@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useContext, useEffect, useState } from
 import { Preferences } from '@capacitor/preferences';
 import { apiAxiosClient } from '../axios';
 import userPool from '../cognitoConfig';
+import SetUsername from '../pages/Auth/SetUsername';
 
 interface ProfileContextProps {
     numberSystem: string;
@@ -77,29 +78,8 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
     }
 
     async function refreshAttributes() {
-        const cognitoUser = userPool.getCurrentUser();
-
-        if (!cognitoUser) {
-        return null;
-        }
-
-        cognitoUser.getSession((err: Error) => {
-        if (err) {
-            return null;
-        }
-
-            cognitoUser.getUserAttributes((err, attributes) => {
-                if (err) {
-                    return null;
-                } else {
-                    const userInfo: any = {};
-                    (attributes || []).forEach(attribute => {
-                        userInfo[attribute.Name] = attribute.Value;
-                    });
-                    setAttributes(userInfo);
-                }
-            });
-        });
+        const attributesData = await apiAxiosClient.get('/user');
+        setAttributes(attributesData.data);
     }
 
     async function updateAttributes(attributes: { Name: string, Value: string}[]) {
@@ -143,7 +123,12 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
 
     return (
         <ProfileContext.Provider value={{ numberSystem, setNumberSystem, yearStats, cars, refreshCars, defaultCar, setDefaultCar, attributes, updateAttributes, drives, refreshDrives }}>
-            { children }
+            {
+                attributes && !attributes.preferred_username ?
+                <SetUsername />
+                :
+                children
+            }
         </ProfileContext.Provider>
     )
 }

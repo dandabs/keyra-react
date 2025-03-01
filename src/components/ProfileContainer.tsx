@@ -9,9 +9,10 @@ import currencies from '../currencies';
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 import { useFuel } from '../contexts/FuelContext';
 import { useProfile } from '../contexts/ProfileContext';
+import { mToKm, mToMi } from '../utils';
 
 const ProfileContainer: React.FC = () => {
-    const { cars, attributes, updateAttributes, drives } = useProfile()!;
+    const { cars, attributes, updateAttributes, drives, yearStats } = useProfile()!;
 
     const [friendsLoading, setFriendsLoading] = useState(false);
     const [friends, setFriends] = React.useState([]);
@@ -128,7 +129,7 @@ const ProfileContainer: React.FC = () => {
         </IonButton>
         <div className="sign-outline">
             <div className="sign-route">
-                <span>{ !friendsLoading ? friends.length : <IonSkeletonText animated={true} style={{ width: '10px' }}></IonSkeletonText> }</span>
+                <span>{ yearStats ? Math.round( numberSystem == 'metric' ? mToKm(yearStats.totalDistance) : mToMi(yearStats.totalDistance) ) : <IonSkeletonText animated={true} style={{ width: '10px' }}></IonSkeletonText> }</span>
             </div>
             <span>{ attributes ? attributes.preferred_username : <IonSkeletonText animated={true} style={{ width: '80px' }}></IonSkeletonText> }</span>
         </div>

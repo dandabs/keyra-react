@@ -31,6 +31,14 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
         setCurrentDrive(null);
     }
 
+    function getLastPoint() {
+        return lastPoint;
+    }
+
+    useEffect(() => {
+        console.log('last point change')
+    }, [lastPoint])
+
     useEffect(() => {
         if (isCalledRef.current) return;
         isCalledRef.current = true;
