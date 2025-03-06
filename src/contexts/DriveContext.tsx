@@ -1,13 +1,8 @@
-import { BackgroundGeolocationPlugin, Location } from 'cordova-background-geolocation-plugin';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { initializeDatabase } from '../databaseHandler';
-import { initializeLocationHandler } from '../locationHandler';
-import { handleLocationUpdate } from '../driveHandler';
-import { Preferences } from '@capacitor/preferences';
 import { apiAxiosClient } from '../axios';
-
-declare const BackgroundGeolocation: BackgroundGeolocationPlugin;
-
+import BackgroundGeolocation, { Location, Subscription } from "@transistorsoft/capacitor-background-geolocation";
+import { getToken } from '../cognitoConfig';
 interface DriveContextProps {
     currentDrive: any | null;
     lastPoint: Location | null;
@@ -28,16 +23,40 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
     const isCalledRef = React.useRef(false);
 
     async function getData() {
-        setCurrentDrive(null);
+        const drive = await apiAxiosClient.get('/current-drive');
+        setCurrentDrive(drive.data.drive);
     }
 
-    function getLastPoint() {
-        return lastPoint;
-    }
+    async function initializeLocation() {
+        BackgroundGeolocation.onLocation((location) => {
+            setLastPoint(location);
+            console.log(location);
+        });
 
-    useEffect(() => {
-        console.log('last point change')
-    }, [lastPoint])
+        BackgroundGeolocation.ready({
+        desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
+        distanceFilter: 10,
+        stopTimeout: 5,
+        debug: false,
+        logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+        stopOnTerminate: false,
+        startOnBoot: true,
+        url: apiAxiosClient.defaults.baseURL + '/location',
+        headers: {
+            "Authorization": `Bearer ${await getToken()}`
+        },
+        batchSync: true,
+        maxBatchSize: 25,
+        autoSync: true,
+        autoSyncThreshold: 1,
+        allowIdenticalLocations: true,
+        }).then(async (state) => {
+            console.log('Initialized location handler', state);
+            console.log('Starting location handler');
+            await BackgroundGeolocation.start();
+            console.log('Started location handler');
+        });
+    }
 
     useEffect(() => {
         if (isCalledRef.current) return;
@@ -45,53 +64,8 @@ const DriveProvider = ({ children }: DriveProviderProps) => {
 
         getData();
         initializeDatabase();
-        initializeLocationHandler();
 
-        BackgroundGeolocation.removeAllListeners();
-
-        BackgroundGeolocation.on('location', function(location) {
-            BackgroundGeolocation.startTask((taskKey) => {
-                console.log(location);
-                handleLocationUpdate(location, setLastPoint, setCurrentDrive).then(() => {
-                    BackgroundGeolocation.endTask(taskKey);
-                });
-            })
-        });
-
-        BackgroundGeolocation.headlessTask(function(event) {
-            if (event.name === 'location' ||
-              event.name === 'stationary') {
-                console.log(event.params);
-            }
-        
-            return 'Processing event: ' + event.name;
-        });
-
-        BackgroundGeolocation.on('error', function(error) {
-            console.log('[ERROR] BackgroundGeolocation error:', error);
-        });
-
-        BackgroundGeolocation.on('start', function() {
-            console.log('[INFO] BackgroundGeolocation service has been started');
-        });
-
-        BackgroundGeolocation.on('stop', function() {
-            console.log('[INFO] BackgroundGeolocation service has been stopped');
-        });
-
-        BackgroundGeolocation.on('authorization', function(status) {
-            console.log('[INFO] BackgroundGeolocation authorization status: ' + status);
-            if (status !== BackgroundGeolocation.AUTHORIZED) {
-              // we need to set delay or otherwise alert may not be shown
-              setTimeout(function() {
-                const showSettings = confirm('App requires location tracking permission. Would you like to open app settings?');
-                if (showSettings) {
-                  return BackgroundGeolocation.showAppSettings();
-                }
-                return;
-              }, 1000);
-            }
-        });
+        initializeLocation();
     }, []);
 
     return (

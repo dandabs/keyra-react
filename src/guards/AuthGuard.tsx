@@ -12,12 +12,13 @@ const AuthGuard: React.FC<any> = ({ component: Component, ...rest }) => {
     setIsAuthenticated(!!user);
   }, []);
 
-  if (isAuthenticated === null) return null;
+  if (isAuthenticated === null) { SplashScreen.hide(); return null; }
   if (!isAuthenticated) {
     SplashScreen.hide();
     return <Route {...rest} render={() => <Redirect to="/auth" />} />;
   }
-  
+
+  SplashScreen.hide();
   return <Route {...rest} render={(props) => <Component {...props} />} />;
 };
 

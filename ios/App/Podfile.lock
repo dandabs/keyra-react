@@ -20,6 +20,9 @@ PODS:
     - Capacitor
   - CapacitorSplashScreen (7.0.0):
     - Capacitor
+  - CocoaLumberjack (3.7.4):
+    - CocoaLumberjack/Core (= 3.7.4)
+  - CocoaLumberjack/Core (3.7.4)
   - CordovaPlugins (7.0.1):
     - CapacitorCordova
   - SQLCipher (4.6.1):
@@ -27,6 +30,11 @@ PODS:
   - SQLCipher/common (4.6.1)
   - SQLCipher/standard (4.6.1):
     - SQLCipher/common
+  - TransistorsoftCapacitorBackgroundFetch (7.0.1):
+    - Capacitor
+  - TransistorsoftCapacitorBackgroundGeolocation (7.0.3):
+    - Capacitor
+    - CocoaLumberjack (~> 3.7.2)
   - ZIPFoundation (0.9.19)
 
 DEPENDENCIES:
@@ -41,9 +49,12 @@ DEPENDENCIES:
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - CordovaPlugins (from `../capacitor-cordova-ios-plugins`)
+  - "TransistorsoftCapacitorBackgroundFetch (from `../../node_modules/@transistorsoft/capacitor-background-fetch`)"
+  - "TransistorsoftCapacitorBackgroundGeolocation (from `../../node_modules/@transistorsoft/capacitor-background-geolocation`)"
 
 SPEC REPOS:
   trunk:
+    - CocoaLumberjack
     - SQLCipher
     - ZIPFoundation
 
@@ -70,6 +81,10 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/splash-screen"
   CordovaPlugins:
     :path: "../capacitor-cordova-ios-plugins"
+  TransistorsoftCapacitorBackgroundFetch:
+    :path: "../../node_modules/@transistorsoft/capacitor-background-fetch"
+  TransistorsoftCapacitorBackgroundGeolocation:
+    :path: "../../node_modules/@transistorsoft/capacitor-background-geolocation"
 
 SPEC CHECKSUMS:
   Capacitor: de199cba6c8b20995428ad0b7cb0bc6ca625ffd4
@@ -82,10 +97,13 @@ SPEC CHECKSUMS:
   CapacitorPreferences: 8e4bef1f937fc991a19d7ea99330c36a62edd24b
   CapacitorShare: d94c53d7656f1ce8f6712ae8d19ab0c18a69259f
   CapacitorSplashScreen: 7e7a0a1113833032f196b3af6fa437baccacf5bc
+  CocoaLumberjack: 543c79c114dadc3b1aba95641d8738b06b05b646
   CordovaPlugins: 7f8be44bad55b268b9f3f9468b139c4988f6bf5e
   SQLCipher: 77fbe633cd84db04b07876dd50766b4924b57d61
+  TransistorsoftCapacitorBackgroundFetch: 6a2a81a6f568dfeec26cdee4e16ffd24f66d9f7f
+  TransistorsoftCapacitorBackgroundGeolocation: 177fc23cbbce9ba5c6350cf3f7b148353721823a
   ZIPFoundation: b8c29ea7ae353b309bc810586181fd073cb3312c
 
-PODFILE CHECKSUM: dc120ce2f1bd352d82902df066903c6875053cc3
+PODFILE CHECKSUM: 2324910e78afb0694338989f483303bbbb284b42
 
 COCOAPODS: 1.16.2

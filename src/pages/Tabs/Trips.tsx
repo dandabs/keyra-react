@@ -3,9 +3,10 @@ import { IonAlert, IonContent, IonHeader, IonIcon, IonItem, IonItemOption, IonIt
 import './Trips.css';
 import { apiAxiosClient } from '../../axios';
 import { carSharp, locationSharp, trashBin } from 'ionicons/icons';
-import { msToTimeLabel, mToKmLabel, mToMiLabel } from '../../utils';
+import { distance, msToTimeLabel, mToKmLabel, mToMiLabel } from '../../utils';
 import { useHistory } from 'react-router';
 import { useProfile } from '../../contexts/ProfileContext';
+import { DateTime } from 'luxon';
 
 const Trips: React.FC = () => {
   const history = useHistory();
@@ -44,16 +45,16 @@ const Trips: React.FC = () => {
           }
           <IonList lines="none">
             {
-              drives && drives.sort((a: any, b: any) => b.startTime - a.startTime).map((drive: any) => (
+              drives && drives.filter(drive => drive.STATUS == "ENRICHED").sort((a: any, b: any) => b.PK - a.PK).map((drive: any) => (
                 <IonItemSliding key={drive.PK}>
                   <IonItem lines="none" color="light" button onClick={() => { history.push(`/tabs/drive/${drive.PK}`) }}>
                     <div className="drive-inner-container">
                       <div className="locations-container">
                         <div className="location-icon-container">
                           <IonIcon aria-hidden="true" icon={locationSharp} slot="start"></IonIcon>
-                          <IonLabel className="place">{drive.from}</IonLabel>
+                          <IonLabel className="place">{drive.FROM_NAME}</IonLabel>
                           <IonLabel className="time">{
-                          new Date(drive.startTime * 1000).toLocaleTimeString("en", {
+                          new Date(DateTime.fromISO(drive.PK).toMillis()).toLocaleTimeString("en", {
                             hour: 'numeric',
                             minute: 'numeric',
                             hour12: false,
@@ -63,9 +64,9 @@ const Trips: React.FC = () => {
                         </div>
                         <div className="location-icon-container">
                           <IonIcon aria-hidden="true" icon={locationSharp} slot="start"></IonIcon>
-                          <IonLabel className="place">{drive.to}</IonLabel>
+                          <IonLabel className="place">{drive.TO_NAME}</IonLabel>
                           <IonLabel className="time">{
-                          new Date(drive.endTime * 1000).toLocaleTimeString("en", {
+                          new Date(DateTime.fromISO(drive.END_TIME).toMillis()).toLocaleTimeString("en", {
                             hour: 'numeric',
                             minute: 'numeric',
                             hour12: false,
@@ -76,7 +77,7 @@ const Trips: React.FC = () => {
                       </div>
                       <div className="drive-details-container">
                         <IonLabel className="place">{ drive.carId }</IonLabel>
-                        <IonLabel className="place">{msToTimeLabel(drive.duration)} - {numberSystem == 'metric' ? mToKmLabel(drive.distance) : mToMiLabel(drive.distance)}</IonLabel>
+                        <IonLabel className="place">{msToTimeLabel(DateTime.fromISO(drive.END_TIME).diff(DateTime.fromISO(drive.PK)).toMillis())} - {numberSystem == 'metric' ? mToKmLabel(distance(drive.POINTS)) : mToMiLabel(distance(drive.POINTS))}</IonLabel>
                       </div>
                     </div>
                   </IonItem>

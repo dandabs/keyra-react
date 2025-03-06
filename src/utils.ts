@@ -1,12 +1,16 @@
 import parsePhoneNumberFromString from "libphonenumber-js";
 import currencies from "./currencies";
 
+export const distance = (points: any[]) => {
+    return points.slice(1).reduce((sum, p, i) => sum + haversine(points[i], p), 0);
+}
+
 export const haversine = (p1: any, p2: any) => {
     const R = 6371000; // Earth radius in meters
     const toRad = (deg: any) => deg * Math.PI / 180;
-    const dLat = toRad(p2.latitude - p1.latitude);
-    const dLon = toRad(p2.longitude - p1.longitude);
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(p1.latitude)) * Math.cos(toRad(p2.latitude)) * Math.sin(dLon / 2) ** 2;
+    const dLat = toRad(p2.lat - p1.lat);
+    const dLon = toRad(p2.lng - p1.lng);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(p1.lat)) * Math.cos(toRad(p2.lat)) * Math.sin(dLon / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 

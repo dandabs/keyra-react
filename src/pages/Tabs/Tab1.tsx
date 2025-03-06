@@ -8,7 +8,7 @@ import { Http } from '@capacitor-community/http';
 
 import { PluginListenerHandle } from '@capacitor/core';
 import { Motion } from '@capacitor/motion';
-import { formatCurrency, msToKmh, msToKmhLabel, msToM, msToMph, msToMphLabel, msToTimeLabel, mToKmLabel, mToMi, mToMiLabel, getDistance } from '../../utils';
+import { formatCurrency, msToKmh, msToKmhLabel, msToM, msToMph, msToMphLabel, msToTimeLabel, mToKmLabel, mToMi, mToMiLabel, getDistance, haversine } from '../../utils';
 import { apiAxiosClient, genericAxiosClient } from '../../axios';
 import { Preferences } from '@capacitor/preferences';
 import currencies from '../../currencies';
@@ -16,10 +16,12 @@ import { Link } from 'react-router-dom';
 import { useFuel } from '../../contexts/FuelContext';
 import { useProfile } from '../../contexts/ProfileContext';
 
+import { DateTime } from "luxon";
+
 let accelHandler: PluginListenerHandle;
 
 const Tab1: React.FC = () => {
-  const { currentDrive, lastPoint } = useDrive()!;
+  const { currentDrive, lastPoint, getData } = useDrive()!;
 
   const [drive, setDrive] = React.useState<any>(null);
 
@@ -27,43 +29,23 @@ const Tab1: React.FC = () => {
 
   const [present, dismiss] = useIonLoading();
 
-  const { numberSystem, setNumberSystem, yearStats, cars, refreshCars, attributes, defaultCar, setDefaultCar } = useProfile()!;
+  const { numberSystem, setNumberSystem, yearStats, cars, refreshCars, attributes, updateAttributes } = useProfile()!;
 
   const changeDefaultCarAlertRef = React.useRef<HTMLIonAlertElement>(null);
   const changeEfficiencyAlertRef = React.useRef<HTMLIonAlertElement>(null);
   
-  const { setFuelPrice, fuelPrice, setFuelCurrency, fuelCurrency, setFuelSyncStationId, fuelSyncStation } = useFuel()!;
+  const { setFuelSyncStationId, fuelSyncStation } = useFuel()!;
 
   const manualFuelAlertRef = React.useRef<HTMLIonAlertElement>(null);
   const automaticFuelAlertRef = React.useRef<HTMLIonAlertElement>(null);
 
   const [fuelStations, setFuelStations] = React.useState<any[]>([]);
 
-  console.log(lastPoint);
-
-  async function getData() {
-    const current = await getCurrentDrive()
-    if (!currentDrive) setDrive(current);
-
-    accelHandler = await Motion.addListener('accel', event => {
-      console.log(event);
-    });
-  }
-
   useIonViewWillEnter(() => {
-    getCurrentDrive().then(setDrive);
-  });
-
-  useEffect(() => {
     getData();
-    syncDrivesToServer();
   }, []);
 
-  useEffect(() =>{
-    setDrive(currentDrive);
-  }, [currentDrive]);
-
-  const lastPointReal = lastPoint || currentDrive && currentDrive.points[currentDrive.points.length - 1];
+  const currentSpeed = lastPoint?.coords?.speed || 0;
 
   return (
     <IonPage>
@@ -81,9 +63,9 @@ const Tab1: React.FC = () => {
                 <div className="speed-sign">
                   <span>{
                     numberSystem == 'metric' ?
-                    Math.round(msToKmh(lastPointReal?.speed || 0))
+                    Math.round(msToKmh(currentSpeed || 0))
                     :
-                    Math.round(msToMph(lastPointReal?.speed || 0))
+                    Math.round(msToMph(currentSpeed || 0))
                   }</span>
                 </div>
               </div>
@@ -108,39 +90,36 @@ const Tab1: React.FC = () => {
 
         <div className="content-top" style={{ gap: '0' }}>
 
-          {drive &&
+          {currentDrive &&
             <IonCard className="rural-sign-card" style={{ marginBottom: '0'}}>
               <IonCardHeader style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                 <IonCardTitle>{
-                  drive.isPaused ?
-                  `Drive is paused` :
-                  `Driving for ${ numberSystem == 'metric' ? mToKmLabel(drive.distanceElapsed, 1) : mToMiLabel(drive.distanceElapsed, 1) }`
+                  `Driving for ${ numberSystem == 'metric' ? mToKmLabel(currentDrive.POINTS.slice(1).reduce((sum: any, p: any, i: any) => sum + haversine(currentDrive.POINTS[i], p), 0), 1) : mToMiLabel(currentDrive.POINTS.slice(1).reduce((sum: any, p: any, i: any) => sum + haversine(currentDrive.POINTS[i], p), 0), 1) }`
                   }</IonCardTitle>
                 <div>
                   <div className="speed-sign">
                     <span>{
                     numberSystem == 'metric' ?
-                    Math.round(msToKmh(lastPointReal?.speed || 0))
+                    Math.round(msToKmh(currentSpeed || 0))
                     :
-                    Math.round(msToMph(lastPointReal?.speed || 0))
+                    Math.round(msToMph(currentSpeed || 0))
                     }</span>
                   </div>
                 </div>
               </IonCardHeader>
 
               <IonCardContent className="no-padding">
-                {msToTimeLabel(drive.timeElapsed)} elapsed, at an average of { numberSystem === 'metric' ? msToKmhLabel(drive.averageSpeed) : msToKmhLabel(drive.averageSpeed) }
+                {msToTimeLabel(DateTime.now().diff(DateTime.fromISO(currentDrive.PK)).milliseconds)} elapsed, at an average of { numberSystem === 'metric' ? msToKmhLabel(currentDrive.POINTS.reduce((sum: any, p: any) => sum + p.speed, 0) / currentDrive.POINTS.length || 0) : msToKmhLabel(currentDrive.POINTS.reduce((sum: any, p: any) => sum + p.speed, 0) / currentDrive.POINTS.length || 0) }
               </IonCardContent>
 
               <IonButton
                 color="dark"
                 fill="clear"
-                disabled={lastPointReal ? lastPointReal?.speed > MINIMUM_DRIVE_PAUSE_SPEED : true}
+                disabled={currentSpeed > 2}
                 onClick={async () => {
                   present();
-                  await endDrive(drive.id);
-                  setDrive(null);
-                  await syncDrivesToServer();
+                  await apiAxiosClient.delete('/current-drive');
+                  await getData();
                   dismiss();
                 }}
               >
@@ -178,7 +157,7 @@ const Tab1: React.FC = () => {
                   <span>Cost</span>
                   {
                     yearStats ?
-                    <span>{formatCurrency(yearStats?.totalCost, fuelCurrency)}</span>
+                    <span>{formatCurrency(yearStats?.totalCost, attributes.fuelCurrency || 'ISK')}</span>
                     :
                     <IonSkeletonText animated style={{ width: '5rem' }} />
                   }
@@ -209,7 +188,7 @@ const Tab1: React.FC = () => {
           </IonCard>
 
           {
-            defaultCar && cars &&
+            attributes.defaultCar && cars &&
             <>
               <h2>Drive preferences</h2>
 
@@ -217,11 +196,11 @@ const Tab1: React.FC = () => {
                 <div className="rural-sign-card--container-x">
                   <div className="rural-sign-card--route">{
                     numberSystem === 'metric' ?
-                    Math.round(282.48 / cars.find((car => car.PK == defaultCar))?.efficiencyMpg)
+                    Math.round(282.48 / cars.find((car => car.PK == attributes.defaultCar))?.efficiencyMpg)
                     :
-                    Math.round(cars.find((car => car.PK == defaultCar))?.efficiencyMpg)
+                    Math.round(cars.find((car => car.PK == attributes.defaultCar))?.efficiencyMpg)
                     }</div>
-                  <span style={{ flexGrow: 1, paddingLeft: '10px', paddingRight: '10px' }}>{cars.find((car => car.PK == defaultCar))?.name}</span>
+                  <span style={{ flexGrow: 1, paddingLeft: '10px', paddingRight: '10px' }}>{cars.find((car => car.PK == attributes.defaultCar))?.name}</span>
                   <span>&rsaquo;</span>
                 </div>
               </IonCard>
@@ -229,8 +208,8 @@ const Tab1: React.FC = () => {
               <IonCard className="fuel-card" button id='open-fuel-actions' style={{ marginBottom: '0', marginTop: '10px' }}>
                 <div className="rural-sign-card--container-x">
                 <span style={{ flexGrow: 1, paddingLeft: '5px' }}>Fuel</span>
-                <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==fuelCurrency)?.format.replace('%','')}</span>
-                  <div className="fuel-card--price" style={{ marginRight: '10px' }}>{fuelPrice.toFixed(currencies.find(c=>c.code==fuelCurrency)?.decimals || 0)}</div>
+                <span style={{ paddingRight: '5px' }}>{currencies.find(c=>c.code==(attributes.fuelCurrency || "ISK"))?.format.replace('%','')}</span>
+                  <div className="fuel-card--price" style={{ marginRight: '10px' }}>{(attributes.fuelPrice || 0).toFixed(currencies.find(c=>c.code==(attributes.fuelCurrency || "ISK"))?.decimals || 0)}</div>
                   <span>&rsaquo;</span>
                 </div>
               </IonCard>
@@ -280,7 +259,7 @@ const Tab1: React.FC = () => {
               if (!event.detail.data) return;
               if (!event.detail.data.values) return;
               Preferences.set({ key: 'defaultCar', value: event.detail.data.values });
-              setDefaultCar(event.detail.data.values);
+              updateAttributes([ { Name: 'defaultCar', Value: event.detail.data.values } ]);
           }}
         ></IonAlert>
 
@@ -299,9 +278,9 @@ const Tab1: React.FC = () => {
           onDidDismiss={async (event) => {
               if (!event.detail.data) return;
               if (!event.detail.data.values) return;
-              await apiAxiosClient.put(`/car/${defaultCar}`, {
-                ...cars.find(car => car.PK == defaultCar),
-                efficiencyMpg: (numberSystem == 'metric' ? 282.48 / parseInt(event.detail.data.values[0]) : parseInt(event.detail.data.values[0])) || cars.find(car => car.PK == defaultCar).efficiencyMpg,
+              await apiAxiosClient.put(`/car/${attributes.defaultCar}`, {
+                ...cars.find(car => car.PK == attributes.defaultCar),
+                efficiencyMpg: (numberSystem == 'metric' ? 282.48 / parseInt(event.detail.data.values[0]) : parseInt(event.detail.data.values[0])) || cars.find(car => car.PK == attributes.defaultCar).efficiencyMpg,
               });
               refreshCars();
           }}
@@ -340,12 +319,12 @@ const Tab1: React.FC = () => {
 
         <IonAlert
           ref={manualFuelAlertRef}
-          header={"Type the new fuel price, per litre, in " + fuelCurrency}
+          header={"Type the new fuel price, per litre, in " + (attributes.fuelCurrency || "ISK")}
           buttons={['OK']}
           inputs={[
             {
               type: 'number',
-              placeholder: fuelCurrency,
+              placeholder: (attributes.fuelCurrency || "ISK"),
               min: 1,
               max: 1000,
             },
@@ -356,14 +335,15 @@ const Tab1: React.FC = () => {
 
               if (isNaN(parseFloat(event.detail.data.values[0]))) return;
 
-              setFuelPrice(parseFloat(event.detail.data.values[0]));
+              await updateAttributes([ { Name: 'fuelPrice', Value: parseFloat(event.detail.data.values[0]) } ]);
+
               await Preferences.remove({ key: 'fuelSyncStation' });
           }}
         ></IonAlert>
 
         <IonAlert
           onIonAlertWillPresent={async () => {
-            if (fuelCurrency == 'ISK') {
+            if ((attributes.fuelCurrency || "ISK") == 'ISK') {
               const fuelQuery = await genericAxiosClient.get('https://raw.githubusercontent.com/gasvaktin/gasvaktin/refs/heads/master/vaktin/gas.json');
               const stations = fuelQuery.data.stations;
               const sArr: any[] = [];
@@ -391,7 +371,7 @@ const Tab1: React.FC = () => {
               }
               setFuelStations(sArr.sort((a, b) => a.label.localeCompare(b.label)));
             }
-            if (fuelCurrency == 'GBP') {
+            if ((attributes.fuelCurrency || "ISK") == 'GBP') {
 
                 const { data: applegreenData } = await Http.request({ method: 'GET', url: 'https://applegreenstores.com/fuel-prices/data.json' });
                 const { data: asconaData } = await Http.request({ method: 'GET', url: 'https://fuelprices.asconagroup.co.uk/newfuel.json' });
@@ -470,7 +450,7 @@ const Tab1: React.FC = () => {
 
               const sorted = sArr.sort((a, b) => {
                 if (lastPoint) 
-                return getDistance(lastPoint.latitude, lastPoint.longitude, a.latitude, a.longitude) - getDistance(lastPoint.latitude, lastPoint.longitude, b.latitude, b.longitude);
+                return getDistance(lastPoint.coords.latitude, lastPoint.coords.longitude, a.latitude, a.longitude) - getDistance(lastPoint.coords.latitude, lastPoint.coords.longitude, b.latitude, b.longitude);
                 //return getDistance(54.890989, -6.132461, a.latitude, a.longitude) - getDistance(54.890989, -6.132461, b.latitude, b.longitude);
 
                 return a.label.localeCompare(b.label);
@@ -480,15 +460,15 @@ const Tab1: React.FC = () => {
             }
           }}
           ref={automaticFuelAlertRef}
-          header={`Select a ${fuelCurrency} fuel station to link to`}
+          header={`Select a ${(attributes.fuelCurrency || "ISK")} fuel station to link to`}
           buttons={['OK']}
           inputs={fuelStations}
-          onDidDismiss={(event) => {
+          onDidDismiss={async (event) => {
               console.log(event.detail);
               if (!event.detail.data) return;
               if (!event.detail.data.values) return;
               setFuelSyncStationId(event.detail.data.values);
-              setFuelPrice(fuelStations.find(s => s.value == event.detail.data.values)?.price)
+              await updateAttributes([ { Name: 'fuelPrice', Value: fuelStations.find(s => s.value == event.detail.data.values)?.price } ]);
           }}
         ></IonAlert>
 
@@ -496,7 +476,7 @@ const Tab1: React.FC = () => {
           }
 
           {
-            !defaultCar &&
+            !attributes.defaultCar &&
             <>
             <IonText color="medium">
             <p>Looking to record your drives? You&#39;ll need to create a car on the <Link to="/tabs/profile">Profile page</Link>.</p>

@@ -9,15 +9,16 @@ import { notify } from "./notificationUtils";
 
 // multipliers
 export const
-S_TO_MS = 1000;
+S_TO_MS = 1000,
+MPH_TO_MPS = 0.44704;
 
 export const
-MINIMUM_DRIVE_START_SPEED = 20 * 0.44704, // a drive will start if motion above this is detected
-MINIMUM_DRIVE_PAUSE_SPEED = 10 * 0.44704, // a drive will pause if motion below this is detected for MINIMUM_DRIVE_PAUSE_TIME ms
+MINIMUM_DRIVE_START_SPEED = 25 * MPH_TO_MPS, // a drive will start if motion above this is detected
+MINIMUM_DRIVE_PAUSE_SPEED = 10 * MPH_TO_MPS, // a drive will pause if motion below this is detected for MINIMUM_DRIVE_PAUSE_TIME ms
 MINIMUM_DRIVE_PAUSE_TIME = 60 * S_TO_MS,
 MINIMUM_DRIVE_STOP_TIME = 100 * S_TO_MS, // a drive will stop if no motion above MINIMUM_DRIVE_START_SPEED is detected for this time in ms
-MAXIMUM_DRIVE_SPEED = 100, // the upper limit for a drive to be valid - it will cancel and not save if any point above this
-MAXIMUM_STOPPED_SPEED = 1; // the upper limit for a drive to be considered stopped
+MAXIMUM_DRIVE_SPEED = 150 * MPH_TO_MPS, // the upper limit for a drive to be valid - it will cancel and not save if any point above this
+MAXIMUM_STOPPED_SPEED = 1 * MPH_TO_MPS; // the upper limit for a drive to be considered stopped
 
 let lastPoint: Location | null = null;
 
@@ -113,14 +114,10 @@ export async function handleLocationUpdate(
 }
 
 export async function getCurrentDrive() {
-    const points = await queryDatabase(`SELECT * FROM drive_points ORDER BY timestamp DESC`, []);
+    const points = await queryDatabase(`SELECT * FROM drive_points WHERE isLastPoint != 1 ORDER BY timestamp DESC`, []);
 
     if (points.length == 0) {
         console.log("No points found, returning null");
-        return null;
-    }
-    if (points[0].isLastPoint == true) {
-        console.log("Last point is marked as last point, returning null");
         return null;
     }
     if (points[0].driveId == "-1") {

@@ -7,7 +7,6 @@ import CreateCarModalContainer from './CreateCarModalContainer';
 import { apiAxiosClient } from '../axios';
 import currencies from '../currencies';
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
-import { useFuel } from '../contexts/FuelContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { mToKm, mToMi } from '../utils';
 
@@ -29,8 +28,6 @@ const ProfileContainer: React.FC = () => {
     const [imageData, setImageData] = useState<string | null>(null);
 
     const { numberSystem, setNumberSystem } = useProfile()!;
-
-    const { fuelCurrency, setFuelCurrency } = useFuel()!;
 
     const history = useHistory();
     const modal = useRef<HTMLIonModalElement>(null);
@@ -240,7 +237,7 @@ const ProfileContainer: React.FC = () => {
             </IonSelect>
           </IonItem>
           <IonItem>
-            <IonSelect disabled={(drives?.length || 0) > 0} label="Currency" placeholder="Select a currency" value={fuelCurrency} onIonChange={(e) => setFuelCurrency(e.detail.value)}>
+            <IonSelect disabled={(drives?.length || 0) > 0} label="Currency" placeholder="Select a currency" value={attributes.fuelCurrency || 'ISK'} onIonChange={(e) => updateAttributes([ { Name: 'fuelCurrency', Value: e.detail.value } ])}>
               {
                 currencies.map((currency) => (
                   <IonSelectOption value={currency.code} key={currency.code}>{currency.code}</IonSelectOption>

@@ -5,17 +5,17 @@ import { apiAxiosClient } from '../../axios';
 import { MapContainer, TileLayer, Polyline, useMap, Marker, Popup } from "react-leaflet";
 import { LatLngExpression, Map } from 'leaflet';
 import L from "leaflet";
-import { formatCurrency, guessCountryAndFormat, msToKmh, msToKmhLabel, msToMph, msToMphLabel, mToKm, mToMi } from '../../utils';
+import { distance, formatCurrency, guessCountryAndFormat, msToKmh, msToKmhLabel, msToMph, msToMphLabel, mToKm, mToMi } from '../../utils';
 import { useProfile } from '../../contexts/ProfileContext';
 import { Contacts } from '@capacitor-community/contacts';
 import { Share } from '@capacitor/share';
 
-const FitBounds = ({ points }: { points: { latitude: number; longitude: number }[] }) => {
+const FitBounds = ({ points }: { points: { lat: number; lng: number }[] }) => {
     const map = useMap();
 
     useEffect(() => {
         if (points.length > 0) {
-        const bounds = L.latLngBounds(points.map(p => [p.latitude, p.longitude]));
+        const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
         map.fitBounds(bounds, { padding: [10, 10] });
         }
     }, [map, points]);
@@ -47,8 +47,8 @@ const detectSpeedingSegments = (drive: any) => {
     let segmentSpeed = 0;
     let segmentSpeedLimit = 0;
 
-    for (let i = 0; i < drive.points.length - 1; i++) {
-        const point = drive.points[i];
+    for (let i = 0; i < drive.POINTS.length - 1; i++) {
+        const point = drive.POINTS[i];
         
         if (point.speed && point.speedLimit && point.speed > point.speedLimit) {
             if (!segmentStart) segmentStart = i;  // Start of a speeding segment
@@ -71,7 +71,7 @@ const detectSpeedingSegments = (drive: any) => {
 
     // If the last point is part of a speeding segment
     if (segmentStart !== null) {
-        speedingSegments.push([segmentStart, drive.points.length - 1]);
+        speedingSegments.push([segmentStart, drive.POINTS.length - 1]);
     }
 
     return speedingSegments;
@@ -144,15 +144,15 @@ const DriveView: React.FC = () => {
                     {
                         drive &&
                         <>
-                        <FitBounds points={drive.points} />
+                        <FitBounds points={drive.POINTS} />
 
-                        {drive.points.slice(0, -1).map((point: any, index: number) => {
-                            const nextPoint = drive.points[index + 1];
+                        {drive.POINTS.slice(0, -1).map((point: any, index: number) => {
+                            const nextPoint = drive.POINTS[index + 1];
                             if (!nextPoint) return null;
 
                             const segment: LatLngExpression[] = [
-                            [point.latitude, point.longitude],
-                            [nextPoint.latitude, nextPoint.longitude],
+                            [point.lat, point.lng],
+                            [nextPoint.lat, nextPoint.lng],
                             ];
 
                             let isOverSpeed = false;
@@ -173,22 +173,22 @@ const DriveView: React.FC = () => {
                             );
                         })}
 
-                        <Marker position={[drive.points[0].latitude, drive.points[0].longitude]} icon={startIcon}>
-                            <Popup>{drive.from}</Popup>
+                        <Marker position={[drive.POINTS[0].lat, drive.POINTS[0].lng]} icon={startIcon}>
+                            <Popup>{drive.FROM_NAME}</Popup>
                         </Marker>
-                        <Marker position={[drive.points[drive.points.length - 1].latitude, drive.points[drive.points.length - 1].longitude]} icon={endIcon}>
-                            <Popup>{drive.to}</Popup>
+                        <Marker position={[drive.POINTS[drive.POINTS.length - 1].lat, drive.POINTS[drive.POINTS.length - 1].lng]} icon={endIcon}>
+                            <Popup>{drive.TO_NAME}</Popup>
                         </Marker>
 
                         {speedingSegments.map((segment: any, index: number) => {
-                            const startPoint = drive.points[segment[0]];
+                            const startPoint = drive.POINTS[segment[0]];
 
                             if (!segment[2] || segment[3] == 0) return null;
                             console.log(segment);
 
                             return (
                                 <React.Fragment key={index}>
-                                    <Marker position={[startPoint.latitude, startPoint.longitude]} icon={speedIcon(numberSystem == 'metric' ? msToKmh(segment[2]) : msToMph(segment[2]))}>
+                                    <Marker position={[startPoint.lat, startPoint.lng]} icon={speedIcon(numberSystem == 'metric' ? msToKmh(segment[2]) : msToMph(segment[2]))}>
                                         <Popup>
                                             Speeding{' '}
                                             {numberSystem == 'metric' ? msToKmhLabel(segment[2]) : msToMphLabel(segment[2])}{' '}
@@ -220,12 +220,12 @@ const DriveView: React.FC = () => {
                             
                             <IonCard className="rural-sign-card" style={{ marginBottom: '0', marginTop: '5px' }}>
                                 <div className="rural-sign-card--container-x-small" style={{ paddingBottom: 0 }}>
-                                    <span style={{ flexGrow: 1, paddingLeft: '5px', paddingRight: '10px' }}>{drive.from.split(',')[0]}</span>
+                                    <span style={{ flexGrow: 1, paddingLeft: '5px', paddingRight: '10px' }}>{drive.FROM_NAME}</span>
                                     <span style={{ paddingLeft: '10px', paddingRight: '5px' }}>{ 0 }</span>
                                 </div>
                                 <div className="rural-sign-card--container-x-small">
-                                    <span style={{ flexGrow: 1, paddingLeft: '5px', paddingRight: '10px' }}>{drive.to.split(',')[0]}</span>
-                                    <span style={{ paddingLeft: '10px', paddingRight: '5px' }}>{ numberSystem == 'metric' ? Math.round(mToKm(drive.distance)) : Math.round(mToMi(drive.distance)) }</span>
+                                    <span style={{ flexGrow: 1, paddingLeft: '5px', paddingRight: '10px' }}>{drive.TO_NAME}</span>
+                                    <span style={{ paddingLeft: '10px', paddingRight: '5px' }}>{ numberSystem == 'metric' ? Math.round(mToKm(distance(drive.POINTS))) : Math.round(distance(drive.POINTS)) }</span>
                                 </div>
                             </IonCard>
 
@@ -234,24 +234,24 @@ const DriveView: React.FC = () => {
                                     <div className="speed-sign">
                                         <span>{
                                         numberSystem == 'metric' ?
-                                        Math.round(msToKmh(drive.averageSpeed))
+                                        Math.round(msToKmh(drive.AVERAGE_SPEED))
                                         :
-                                        Math.round(msToMph(drive.averageSpeed))
+                                        Math.round(msToMph(drive.AVERAGE_SPEED))
                                         }</span>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                     <div className="fuel-card--price" style={{ fontSize: '3rem' }}>
-                                        {formatCurrency((drive.distance * 0.0006213712) / drive.efficiencyMpg * (4.54609 * drive.fuel.price), drive.fuel.currency).replace('£', '')}
+                                        {formatCurrency((distance(drive.POINTS) * 0.0006213712) / drive.FUEL_EFFICIENCY_MPG * (4.54609 * drive.FUEL_PRICE_PER_LITRE), drive.FUEL_PRICE_CURRENCY).replace('£', '')}
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                                     <div className="speed-sign">
                                         <span>{
                                         numberSystem == 'metric' ?
-                                        Math.round(msToKmh(drive.topSpeed))
+                                        Math.round(msToKmh(drive.TOP_SPEED))
                                         :
-                                        Math.round(msToMph(drive.topSpeed))
+                                        Math.round(msToMph(drive.TOP_SPEED))
                                         }</span>
                                     </div>
                                 </div>
@@ -371,7 +371,7 @@ const DriveView: React.FC = () => {
                                                     try {
                                                         await Share.share({
                                                             title: 'Join my drive',
-                                                            text: `Join my drive from ${drive.from} to ${drive.to} on ${new Date(drive.startTime).toLocaleDateString()}`,
+                                                            text: `Join my drive from ${drive.FROM_NAME} to ${drive.TO_NAME} on ${new Date(drive.startTime).toLocaleDateString()}`,
                                                             url: `https://getkeyra.com/i?d=${drive.PK}`,
                                                             dialogTitle: 'Share your drive'
                                                         });

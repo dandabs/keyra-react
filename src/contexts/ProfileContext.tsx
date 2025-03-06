@@ -11,10 +11,8 @@ interface ProfileContextProps {
     yearStats: any | null;
     cars: any[] | null;
     refreshCars: () => void;
-    defaultCar: string | null;
-    setDefaultCar: (id: string) => void;
     attributes: any | null;
-    updateAttributes: (attributes: { Name: string, Value: string}[]) => void;
+    updateAttributes: (attributes: { Name: string, Value: string | number | null}[]) => void;
     drives: any[] | null;
     refreshDrives: () => void;
 }
@@ -29,16 +27,10 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
     const [numberSystem, setNumberSystemState] = useState('metric');
     const [yearStats, setYearStats] = useState<any | null>(null);
     const [cars, setCars] = useState<any[] | null>(null);
-    const [defaultCar, setDefaultCarState] = useState<string | null>(null);
     const [attributes, setAttributes] = useState<any | null>(null);
     const [drives, setDrives] = useState<any[] | null>(null);
 
     const isCalledRef = React.useRef(false);
-
-    async function setDefaultCar(id: string) {
-        await Preferences.set({ key: 'defaultCar', value: id });
-        setDefaultCarState(id);
-    }
 
     async function setNumberSystem(system: string) {
         await Preferences.set({ key: 'numberSystem', value: system });
@@ -54,20 +46,17 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
         const cars = await apiAxiosClient.get('/car');
         setCars(cars.data);
 
-        const defaultCar = await Preferences.get({ key: 'defaultCar' });
-        if (!defaultCar.value) {
+        const attributesData = await apiAxiosClient.get('/user');
+        if (!attributesData.data.defaultCar) {
             if (cars.data.length > 0) {
-                await Preferences.set({ key: 'defaultCar', value: cars.data[0].PK });
-                setDefaultCarState(cars.data[0].PK);
+                updateAttributes([ { Name: 'defaultCar', Value: cars.data[0].PK } ]);
             }
         } else {
-            if (!cars.data.find((car: any) => car.PK === defaultCar.value)) {
+            if (!cars.data.find((car: any) => car.PK === attributesData.data.defaultCar)) {
                 if (cars.data.length > 0) {
-                    await Preferences.set({ key: 'defaultCar', value: cars.data[0].PK });
-                    setDefaultCarState(cars.data[0].PK);
+                    updateAttributes([ { Name: 'defaultCar', Value: cars.data[0].PK } ]);
                 } else {
-                    await Preferences.remove({ key: 'defaultCar' });
-                    setDefaultCarState(null);
+                    updateAttributes([ { Name: 'defaultCar', Value: null } ]);
                 }
             }
         }
@@ -83,7 +72,7 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
         setAttributes(attributesData.data);
     }
 
-    async function updateAttributes(attributes: { Name: string, Value: string}[]) {
+    async function updateAttributes(attributes: { Name: string, Value: string | number | null}[]) {
         const cognitoUser = userPool.getCurrentUser();
         if (!cognitoUser) throw Error();
 
@@ -95,9 +84,6 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
     async function getData() {
         const numberSystem = await Preferences.get({ key: 'numberSystem' });
         if (numberSystem.value) setNumberSystemState(numberSystem.value);
-
-        const defaultCar = await Preferences.get({ key: 'defaultCar' });
-        if (defaultCar.value) setDefaultCarState(defaultCar.value);
 
         await Promise.all([refreshYearStats(), refreshCars(), refreshAttributes(), refreshDrives()]);
 
@@ -117,7 +103,7 @@ const ProfileProvider = ({ children }: ProfileProviderProps) => {
         SplashScreen.hide();
 
     return (
-        <ProfileContext.Provider value={{ numberSystem, setNumberSystem, yearStats, cars, refreshCars, defaultCar, setDefaultCar, attributes, updateAttributes, drives, refreshDrives }}>
+        <ProfileContext.Provider value={{ numberSystem, setNumberSystem, yearStats, cars, refreshCars, attributes, updateAttributes, drives, refreshDrives }}>
             {
                 !attributes.preferred_username ?
                 <SetUsername />
