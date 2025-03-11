@@ -1,0 +1,49 @@
+name: Release OTA Update
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on tag creation (e.g., v1.1.0)
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: |
+          npm install
+          npm run build  # Adjust based on your build command
+
+      - name: Build app for release
+        run: npm run build:prod  # Build production assets (change if needed)
+
+      - name: Package app as ZIP
+        run: |
+          zip -r app-release.zip ./build/  # Ensure to package your app in a ZIP or other format
+
+      - name: Create Release on GitHub
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app-release.zip  # Upload the built app as an asset
+
+      - name: Create update.json file
+        run: |
+          echo '{
+            "latestVersion": "v${GITHUB_REF##*/}",
+            "downloadUrl": "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF##*/}/app-release.zip",
+            "minCompatibleVersion": "v1.0.0"
+          }' > update.json
+
+      - name: Upload update.json
+        uses: softprops/action-gh-release@v1
+        with:
+          files: update.json  # Upload update.json for version metadata

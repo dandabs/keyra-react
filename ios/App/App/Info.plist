@@ -35,13 +35,13 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We need to access your photo library to choose a profile photo</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We need your location even when the app is in the background to record your drives.</string>
+	<string>We need your location even when the app is in the background to record your drives</string>
 	<key>NSContactsUsageDescription</key>
 	<string>We need to access your contacts to invite your friends to drives</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need your location to record your drives.</string>
+	<string>We need your location to record your drives</string>
 	<key>NSMotionUsageDescription</key>
-	<string>$MOTION_USAGE_DESCRIPTION</string>
+	<string>We need to access your phone&apos;s motion sensors to detect what speed you&apos;re moving at</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

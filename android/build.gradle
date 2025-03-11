@@ -21,12 +21,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven {
-           // capacitor-background-fetch
-           url("${project(':transistorsoft-capacitor-background-fetch').projectDir}/libs")
-           maven { url("${project(':transistorsoft-capacitor-background-geolocation').projectDir}/libs") }
-           maven { url 'https://developer.huawei.com/repo/' }
-       }
     }
 }
 

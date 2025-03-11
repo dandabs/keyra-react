@@ -45,6 +45,10 @@ const Tab1: React.FC = () => {
     getData();
   }, []);
 
+  useEffect(() => {
+    getData();
+  }, [lastPoint]);
+
   const currentSpeed = lastPoint?.coords?.speed || 0;
 
   return (
@@ -109,7 +113,7 @@ const Tab1: React.FC = () => {
               </IonCardHeader>
 
               <IonCardContent className="no-padding">
-                {msToTimeLabel(DateTime.now().diff(DateTime.fromISO(currentDrive.PK)).milliseconds)} elapsed, at an average of { numberSystem === 'metric' ? msToKmhLabel(currentDrive.POINTS.reduce((sum: any, p: any) => sum + p.speed, 0) / currentDrive.POINTS.length || 0) : msToKmhLabel(currentDrive.POINTS.reduce((sum: any, p: any) => sum + p.speed, 0) / currentDrive.POINTS.length || 0) }
+                {msToTimeLabel(DateTime.now().diff(DateTime.fromISO(currentDrive.START_TIME)).milliseconds)} elapsed, at an average of { numberSystem === 'metric' ? msToKmhLabel(currentDrive.POINTS.reduce((sum: any, p: any) => sum + p.speed, 0) / currentDrive.POINTS.length || 0) : msToKmhLabel(currentDrive.POINTS.reduce((sum: any, p: any) => sum + p.speed, 0) / currentDrive.POINTS.length || 0) }
               </IonCardContent>
 
               <IonButton

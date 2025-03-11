@@ -3,19 +3,20 @@ import { IonAvatar, IonBackButton, IonButton, IonButtons, IonCard, IonChip, IonC
 import { useHistory, useParams } from 'react-router';
 import { apiAxiosClient } from '../../axios';
 import { MapContainer, TileLayer, Polyline, useMap, Marker, Popup } from "react-leaflet";
-import { LatLngExpression, Map } from 'leaflet';
+import { LatLngExpression, Map, polyline } from 'leaflet';
 import L from "leaflet";
 import { distance, formatCurrency, guessCountryAndFormat, msToKmh, msToKmhLabel, msToMph, msToMphLabel, mToKm, mToMi } from '../../utils';
 import { useProfile } from '../../contexts/ProfileContext';
 import { Contacts } from '@capacitor-community/contacts';
 import { Share } from '@capacitor/share';
+import { decode, LatLngTuple } from "@googlemaps/polyline-codec";
 
-const FitBounds = ({ points }: { points: { lat: number; lng: number }[] }) => {
+const FitBounds = ({ points }: { points: LatLngTuple[] }) => {
     const map = useMap();
 
     useEffect(() => {
         if (points.length > 0) {
-        const bounds = L.latLngBounds(points.map(p => [p.lat, p.lng]));
+        const bounds = L.latLngBounds(points);
         map.fitBounds(bounds, { padding: [10, 10] });
         }
     }, [map, points]);
@@ -122,6 +123,7 @@ const DriveView: React.FC = () => {
     })
 
     const speedingSegments = drive ? detectSpeedingSegments(drive) : [];
+    const polyLineToPoints = drive ? decode(drive.POLYLINE) : [];
 
     return (
         <IonPage>
@@ -144,40 +146,19 @@ const DriveView: React.FC = () => {
                     {
                         drive &&
                         <>
-                        <FitBounds points={drive.POINTS} />
+                        <FitBounds points={polyLineToPoints} />
 
-                        {drive.POINTS.slice(0, -1).map((point: any, index: number) => {
-                            const nextPoint = drive.POINTS[index + 1];
-                            if (!nextPoint) return null;
+                        <Polyline
+                            positions={polyLineToPoints}
+                            color={"blue"}
+                            weight={4}
+                        />
 
-                            const segment: LatLngExpression[] = [
-                            [point.lat, point.lng],
-                            [nextPoint.lat, nextPoint.lng],
-                            ];
-
-                            let isOverSpeed = false;
-
-                            if (point.speed &&
-                                point.speedLimit &&
-                                point.speed > point.speedLimit) isOverSpeed = true;
-
-                            if (!isOverSpeed) console.log("not over speed");
-
-                            return (
-                            <Polyline
-                                key={index}
-                                positions={segment}
-                                color={isOverSpeed ? "red" : "blue"}
-                                weight={4}
-                            />
-                            );
-                        })}
-
-                        <Marker position={[drive.POINTS[0].lat, drive.POINTS[0].lng]} icon={startIcon}>
-                            <Popup>{drive.FROM_NAME}</Popup>
-                        </Marker>
-                        <Marker position={[drive.POINTS[drive.POINTS.length - 1].lat, drive.POINTS[drive.POINTS.length - 1].lng]} icon={endIcon}>
+                        <Marker position={polyLineToPoints[0]} icon={startIcon}>
                             <Popup>{drive.TO_NAME}</Popup>
+                        </Marker>
+                        <Marker position={polyLineToPoints[polyLineToPoints.length - 1]} icon={endIcon}>
+                            <Popup>{drive.FROM_NAME}</Popup>
                         </Marker>
 
                         {speedingSegments.map((segment: any, index: number) => {
@@ -225,7 +206,7 @@ const DriveView: React.FC = () => {
                                 </div>
                                 <div className="rural-sign-card--container-x-small">
                                     <span style={{ flexGrow: 1, paddingLeft: '5px', paddingRight: '10px' }}>{drive.TO_NAME}</span>
-                                    <span style={{ paddingLeft: '10px', paddingRight: '5px' }}>{ numberSystem == 'metric' ? Math.round(mToKm(distance(drive.POINTS))) : Math.round(distance(drive.POINTS)) }</span>
+                                    <span style={{ paddingLeft: '10px', paddingRight: '5px' }}>{ numberSystem == 'metric' ? Math.round(mToKm(drive.DISTANCE)) : Math.round(mToMi(drive.DISTANCE)) }</span>
                                 </div>
                             </IonCard>
 

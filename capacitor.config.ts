@@ -14,8 +14,11 @@ const baseConfig: CapacitorConfig = {
     }
   },
   server: {
-    hostname: 'localhost'
-  },
+    hostname: '127.0.0.1',
+    allowNavigation: [
+      '*'
+    ]
+  }
 };
 
 switch (process.env.NODE_ENV) {
@@ -25,7 +28,7 @@ switch (process.env.NODE_ENV) {
       appId: 'is.dsk.keyra',
       appName: 'Keyra',
       ios: {
-        scheme: 'App'
+        scheme: 'App',
       },
       android: {
         flavor: "prod",
@@ -34,7 +37,18 @@ switch (process.env.NODE_ENV) {
           keystoreAlias: 'keyra-release',
           keystorePassword: 'Nuud3l1',
           keystoreAliasPassword: 'Nuud3l1'
-        }
+        },
+        includePlugins: [
+          '@capacitor-community/contacts',
+          '@capacitor-community/http',
+          '@capacitor-community/sqlite',
+          '@capacitor/camera',
+          '@capacitor/local-notifications',
+          '@capacitor/preferences',
+          '@capacitor/share',
+          '@capacitor/splash-screen',
+          'cordova-background-geolocation-plugin'
+        ],
       }
     }
     break;
@@ -48,13 +62,18 @@ switch (process.env.NODE_ENV) {
       },
       android: {
         flavor: "dev",
-        buildOptions: {
-          keystorePath: '/Users/dandabs/keyra-release.jks',
-          keystoreAlias: 'keyra-release',
-          keystorePassword: 'Nuud3l1',
-          keystoreAliasPassword: 'Nuud3l1'
-        }
-      }
+        includePlugins: [
+          '@capacitor-community/contacts',
+          '@capacitor-community/http',
+          '@capacitor-community/sqlite',
+          '@capacitor/camera',
+          '@capacitor/local-notifications',
+          '@capacitor/preferences',
+          '@capacitor/share',
+          '@capacitor/splash-screen',
+          'cordova-background-geolocation-plugin'
+        ],
+      },
     }
     break;
 }

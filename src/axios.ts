@@ -1,5 +1,4 @@
 import axios from 'axios';
-import devEnvironment from './environment.dev';
 import { getToken } from './cognitoConfig';
 import { config } from './config';
 

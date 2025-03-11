@@ -1,8 +1,5 @@
 apply plugin: 'com.android.application'
 
-Project background_geolocation = project(':transistorsoft-capacitor-background-geolocation')
-apply from: "${background_geolocation.projectDir}/app.gradle"
-
 android {
     namespace "is.dsk.keyra"
     compileSdk rootProject.ext.compileSdkVersion
@@ -10,7 +7,7 @@ android {
         applicationId "is.dsk.keyra"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 3
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -23,9 +20,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-
-            // [background-geolocation] Proguard-rules
-            proguardFiles "${background_geolocation.projectDir}/proguard-rules.pro"
         }
     }
     flavorDimensions = ["environment"]

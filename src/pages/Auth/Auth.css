@@ -37,3 +37,7 @@
 .text-start > p {
     text-align: start;
 }
+
+.text-center {
+    text-align: center;
+}

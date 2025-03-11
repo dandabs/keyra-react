@@ -35,9 +35,9 @@ const TabsLayout: React.FC = () => {
   }, []);
 
   return (
-    <DriveProvider>
-      <FuelProvider>
-        <ProfileProvider>
+    <FuelProvider>
+      <ProfileProvider>
+        <DriveProvider>
           <IonTabs>
             <IonRouterOutlet>
               <Route exact path="/tabs/tab1">
@@ -81,9 +81,9 @@ const TabsLayout: React.FC = () => {
               </IonTabButton>
             </IonTabBar>
           </IonTabs>
-        </ProfileProvider>
-      </FuelProvider>
-    </DriveProvider>
+        </DriveProvider>
+      </ProfileProvider>
+    </FuelProvider>
   );
 };
 

@@ -14,10 +14,10 @@
     "deploy:android": "npm run _deploy:android",
     "deploy:ios:prod": "NODE_ENV=production npm run _deploy:ios",
     "deploy:android:prod": "NODE_ENV=production npm run _deploy:android",
-    "_start:ios": "npx cap run ios --live-reload --host localhost --target 5564CA63-E4F7-451F-868F-9323BEE8302C",
-    "_start:android": "npx cap run android --live-reload --host localhost",
-    "_deploy:ios": "npx cap build ios",
-    "_deploy:android": "npx cap build android"
+    "_start:ios": "npx cap sync && npx cap run ios --live-reload --host localhost --target 5564CA63-E4F7-451F-868F-9323BEE8302C",
+    "_start:android": "npx cap sync && npx cap run android --live-reload",
+    "_deploy:ios": "npx cap sync && npx cap build ios",
+    "_deploy:android": "npx cap sync && npx cap build android"
   },
   "dependencies": {
     "@aws-amplify/auth": "^6.11.0",
@@ -31,6 +31,7 @@
     "@capacitor/preferences": "^7.0.0",
     "@capacitor/share": "^7.0.0",
     "@capacitor/splash-screen": "^7.0.0",
+    "@googlemaps/polyline-codec": "^1.0.28",
     "@ionic/react": "^7.0.0",
     "@ionic/react-router": "^7.0.0",
     "@restart/hooks": "^0.6.2",
