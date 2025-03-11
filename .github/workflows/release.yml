@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '20'
 
       - name: Install dependencies
         run: |
@@ -24,7 +24,7 @@ jobs:
           npm run build  # Adjust based on your build command
 
       - name: Build app for release
-        run: npm run build:prod  # Build production assets (change if needed)
+        run: npx cap sync  # Build production assets (change if needed)
 
       - name: Package app as ZIP
         run: |
