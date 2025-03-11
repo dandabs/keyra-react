@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install
+          npm install --force
           npm run build  # Adjust based on your build command
 
       - name: Build app for release
