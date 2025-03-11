@@ -33,4 +33,4 @@ yarn-error.log*
 resources/ios/**/*
 resources/android/**/*
 
-ios/App/App.xcarchive/**/*
+ios/App/App.xcarchive
